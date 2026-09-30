@@ -1,10 +1,6 @@
 {
-  "release": "0.1.0",
+  "release": "0.1.1",
   "build_date_utc": "2026-09-30",
-  "dify": {
-    "tag": "1.17.1",
-    "commit": "8387590ace4a094de812b7847fc6a4c3a27cd52b"
-  },
   "plugin_sdk": "0.10.2",
   "plugin_cli": "0.6.10",
   "kie_dmn": "10.2.0",
@@ -12,33 +8,41 @@
   "python": "3.12.14",
   "java": "21",
   "plugin_package": {
-    "filename": "liangquanzhou-dmn_decision-0.1.0-unsigned.difypkg",
+    "filename": "liangquanzhou-dmn_decision-0.1.1-unsigned.difypkg",
     "signed": false,
-    "sha256": "3d150f1edc36bcc8d20fe53df281fd71c450581b02aa74f104e8394a04cfcf6b"
+    "sha256": "16c5ed36b7610257b75f9ed46f59ada2ee6d9ead4bb7bd912587977b328819c1"
   },
   "dependency_manifests": {
     "plugin/requirements.txt": "202053246c6738431a723896cdc66f31370fdec1cb75724a31a1f2ae05d7503a",
     "engine/pom.xml": "a0b893e48d5f256b1e9bd838000afc8ece2e803775d7792c9790f405af324157",
-    "frontend/package-lock.json": "af53bf68557272616df5a66e9a625424758f61661f40f05383578dab0800098f"
+    "frontend/package-lock.json": "af53bf68557272616df5a66e9a625424758f61661f40f05383578dab0800098f",
+    "frontend/compatibility/1.11.1/package-lock.json": "7dbb0cb5550c7408245c60401fe6daa6b5a5f5bb75be43f9b9c8494c5adee7c4"
   },
   "deployment_performed": false,
   "tests": {
     "plugin": 83,
     "python_java_integration": 8,
     "java_http_kie": 15,
-    "frontend_contract_and_dom": 11,
+    "frontend_shared_contract_dom": 11,
+    "frontend_shared_replay_react_19_2_3": 11,
+    "frontend_111_adapter_runtime": 3,
+    "daemon_051_compatibility_go": 3,
     "actual_browser": "blocked",
     "full_dify": "not_run"
   },
   "github_owner": "liangquanzhou",
   "repository_name": "dify-dmn-plugin",
-  "release_tag": "v0.1.0",
-  "owner_namespace_regression": {
-    "plugin_tests": 83,
-    "frontend_tests": 11,
-    "sdk_registration": "pass",
-    "frontend_typecheck": "pass",
-    "frontend_build": "pass",
-    "patch_apply_idempotence_reverse": "pass"
-  }
+  "release_tag": "v0.1.1",
+  "minimum_dify_version": "1.11.1",
+  "dify_baselines": [
+    {
+      "tag": "1.11.1",
+      "commit": "2058186f22b4e4d4e155f380c130f4e8f21622fa",
+      "bundled_daemon": "0.5.1-local"
+    },
+    {
+      "tag": "1.17.1",
+      "commit": "8387590ace4a094de812b7847fc6a4c3a27cd52b"
+    }
+  ]
 }

@@ -1,6 +1,6 @@
 # GitHub distribution checklist
 
-Recommended repository name: `dify-dmn-plugin`. Initial release tag: `v0.1.0` (manifest version `0.1.0`).
+Recommended repository name: `dify-dmn-plugin`. Compatibility release tag: `v0.1.1` (manifest version `0.1.1`).
 
 ## Required before publication
 
@@ -13,7 +13,7 @@ Recommended repository name: `dify-dmn-plugin`. Initial release tag: `v0.1.0` (m
 ## Release layout
 
 - Push the clean source tree to the repository's `main` branch.
-- Create tag `v0.1.0` against that exact source commit.
+- Create tag `v0.1.1` against that exact source commit.
 - Publish a non-draft release with the final `.difypkg` as an uploaded Release asset, plus `SHA256SUMS.txt`.
 - A source ZIP or committed `.difypkg` alone is not a substitute for the uploaded release asset.
 - Keep `release-assets/` out of the source commit; it is a local upload staging folder.
@@ -21,11 +21,11 @@ Recommended repository name: `dify-dmn-plugin`. Initial release tag: `v0.1.0` (m
 
 Suggested release notes:
 
-> First integration-starter release: standard Dify Tool, private Apache KIE 10.2.0 engine source, and a Dify 1.17.1-specific dmn-js frontend patch. The `.difypkg` installs only the Python Tool. A separately deployed reachable engine is required; the visual editor requires a separate customized Web build. This asset is unsigned unless its name and verification metadata explicitly state otherwise. Read the README before installing. Company deployment/browser/persistence acceptance is still required.
+> Dify 1.11.1 compatibility release: standard Dify Tool, private Apache KIE 10.2.0 engine source, and separate Dify 1.11.1 and 1.17.1 dmn-js frontend patches. The `.difypkg` installs only the Python Tool. A separately deployed reachable engine is required; the visual editor requires a separate customized Web build. This asset is unsigned unless its name and verification metadata explicitly state otherwise. Read the README before installing. Company deployment/browser/persistence acceptance is still required.
 
 ## Installation and verification
 
-Dify: Plugins → Install Plugin → From GitHub → repository URL → `v0.1.0` → `.difypkg` asset → review permissions → Install. Configure the provider's private `engine_url` and `api_token`. Test `examples/eligibility.dmn`, decision ID `eligibility`, facts JSON `{"age":25,"risk_score":30}`; expect matched / eligible true / rule_eligible.
+Dify: Plugins → Install Plugin → From GitHub → repository URL → `v0.1.1` → `.difypkg` asset → review permissions → Install. Configure the provider's private `engine_url` and `api_token`. Test `examples/eligibility.dmn`, decision ID `eligibility`, facts JSON `{"age":25,"risk_score":30}`; expect matched / eligible true / rule_eligible.
 
 Standard documented GitHub distribution uses a public repository. The pinned Dify 1.17.1 code downloads the asset from `https://github.com/OWNER/REPO/releases/download/TAG/ASSET` without a per-repository GitHub token. Do not promise private-repository installation unless the target deployment has an independently verified custom integration. Private source can instead use the approved local-file installation route.
 
@@ -36,3 +36,5 @@ Official references:
 - https://docs.dify.ai/en/develop-plugin/publishing/marketplace-listing/release-to-individual-github-repo
 - https://docs.dify.ai/en/develop-plugin/publishing/standards/third-party-signature-verification
 - https://github.com/langgenius/dify/blob/8387590ace4a094de812b7847fc6a4c3a27cd52b/api/core/plugin/plugin_service.py#L1086
+
+Preserve the published v0.1.0 tag/assets. Publish v0.1.1 as a new release; never silently replace an older binary.

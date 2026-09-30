@@ -1,8 +1,8 @@
-# Dify DMN 决策工具：首个可运行交付包
+# Dify DMN 决策工具：1.11.1 兼容性更新
 
-版本：0.1.0 · 构建日期：2026-09-30
+版本：0.1.1 · 构建日期：2026-09-30
 
-这是一个带真实 DMN 执行能力的集成起点，供公司测试环境验证；需要在目标 Dify 版本上验收后才能投入生产。它包含：
+这是一个带真实 DMN 执行能力的集成包，v0.1.1 增加 Dify 1.11.1 兼容性检查与专用前端适配，供测试环境验证；需要在目标 Dify 版本上验收后才能投入生产。它包含：
 
 1. **标准 Dify Tool 插件**：接收上游 JSON，执行节点内的 DMN XML，向下游返回结构化结果
 2. **Dify 前端补丁**：只为这个 Tool 显示 dmn-js 编辑器；工作流运行时仍使用原生 Tool
@@ -14,8 +14,10 @@
 
 | 部件 | 固定版本 |
 |---|---|
-| Dify 前端基线 | 1.17.1 |
-| Dify commit | `8387590ace4a094de812b7847fc6a4c3a27cd52b` |
+| Tool 最低 Dify 版本 | 1.11.1 |
+| Dify 前端基线 | 1.11.1 与 1.17.1，各自独立适配 |
+| Dify 1.11.1 commit | `2058186f22b4e4d4e155f380c130f4e8f21622fa` |
+| Dify 1.17.1 commit | `8387590ace4a094de812b7847fc6a4c3a27cd52b` |
 | Dify Plugin SDK | 0.10.2 |
 | 打包 CLI | 0.6.10 |
 | 插件 Python | 3.12 |
@@ -23,9 +25,9 @@
 | 引擎 Java | 21 |
 | dmn-js | 17.12.2 |
 
-该 Dify 基线的完整前端构建要求 Node 24.20.0+（v24）及 pnpm 12.3.4；此处只运行独立 harness，未完成整个 Dify Web 构建。
+Dify 1.11.1 前端要求 Node ≥22.11.0、pnpm 10.25.0，在 web/ 目录构建；Dify 1.17.1 要求 Node 24.20.0+（v24）、pnpm 12.3.4。必须使用对应版本的命令与补丁，不能互相套用。此处未完成整个 Dify Web 构建。
 
-部署者必须先确认目标 Dify 的精确版本。前端安装脚本对其他版本拒绝自动套用；先适配再验收。插件 manifest 的 minimum_dify_version 是最低声明，不等于后续所有版本已经测试。
+部署者必须先确认目标 Dify 的精确版本。v0.1.1 单独核对了 Dify 1.11.1 / plugin-daemon 0.5.1 的 Tool 参数、输出及运行协议，见 docs/COMPATIBILITY-1.11.1.md。前端安装脚本对其他版本拒绝自动套用；先适配再验收。minimum_dify_version 是最低声明，不等于后续所有版本或企业定制部署已经验收。
 
 执行服务使用成熟的 Apache KIE 引擎，不包含自制的“DMN 子集解释器”。本适配层有明确的安全范围：单文件 DMN、FEEL、所选 decision；不开放 Java/脚本执行、外部导入等能力。详见 `docs/engine.md`。成熟引擎不代表本 HTTP 适配层支持 DMN 标准的每个构造。
 
@@ -39,7 +41,7 @@
 - `scripts/`：插件注册检查、验证与打包脚本
 - `docs/VALIDATION.md`：此次实际执行过的检查及未验证范围
 - `THIRD_PARTY_NOTICES.md`：依赖与许可证说明
-- 单独提供的 `liangquanzhou-dmn_decision-0.1.0-unsigned.difypkg`：未签名插件包；重新打包时写入 `dist/`
+- 单独提供的 `liangquanzhou-dmn_decision-0.1.1-unsigned.difypkg`：未签名插件包；重新打包时写入 `dist/`
 
 ## 3. 在隔离环境启动引擎
 
@@ -69,11 +71,11 @@ Dify 的 plugin-daemon 与引擎必须网络互通。不同容器的 `localhost`
 
 ```bash
 # 使用已从官方发布页验证来源的 CLI 0.6.10
-/path/to/dify plugin package ./plugin -o ./dist/liangquanzhou-dmn_decision-0.1.0-unsigned.difypkg
+/path/to/dify plugin package ./plugin -o ./dist/liangquanzhou-dmn_decision-0.1.1-unsigned.difypkg
 # 下面由管理员用已批准、已存在的签名私钥执行
-/path/to/dify signature sign ./dist/liangquanzhou-dmn_decision-0.1.0-unsigned.difypkg \
+/path/to/dify signature sign ./dist/liangquanzhou-dmn_decision-0.1.1-unsigned.difypkg \
   -p /secure/path/company.private.pem
-/path/to/dify signature verify ./dist/liangquanzhou-dmn_decision-0.1.0-unsigned.signed.difypkg \
+/path/to/dify signature verify ./dist/liangquanzhou-dmn_decision-0.1.1-unsigned.signed.difypkg \
   -p /approved/path/company.public.pem
 ```
 
@@ -171,6 +173,7 @@ python scripts/check_plugin.py
 
 ## 9. 官方来源
 
+- [Dify 1.11.1](https://github.com/langgenius/dify/releases/tag/1.11.1)
 - [Dify 1.17.1](https://github.com/langgenius/dify/releases/tag/1.17.1)
 - [锁定的 Tool 面板](https://github.com/langgenius/dify/blob/8387590ace4a094de812b7847fc6a4c3a27cd52b/web/app/components/workflow/nodes/tool/panel.tsx)
 - [Dify Tool 开发](https://docs.dify.ai/en/develop-plugin/dev-guides-and-walkthroughs/tool-plugin)

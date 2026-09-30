@@ -54,3 +54,14 @@ mvn -f engine/pom.xml test package
 ## GitHub 发布命名空间回归
 
 发布目标 liangquanzhou/dify-dmn-plugin，插件 author、provider 与前端精确匹配均同步到 liangquanzhou。重新执行 83 项插件测试、11 项前端测试、SDK 注册、前端 typecheck/build、补丁 apply/幂等/reverse/干净树检查，全部通过。插件已用 CLI 0.6.10 重新打包；仍未签名。
+
+## v0.1.1 / Dify 1.11.1 兼容性回归
+
+- 最终包版本0.1.1，最低版本1.11.1，SDK0.10.2保留
+- 对最终包字节执行daemon0.5.1真实解码/manifest/资源校验通过，仍明确unsigned
+- 真实SDK子进程按旧协议完成7个会话，25个变量输出和5个JSON输出通过旧daemon Go类型与Dify1.11.1原始API模型验证
+- 83项插件、8项真实SDK→KIE、15项Java测试再次通过
+- 原11项前端契约/DOM测试、旧React19.2.3环境重放同11项、3项旧i18n适配运行测试均通过
+- 1.11.1和1.17.1真实Git checkout的补丁生命周期/拒绝检查均通过；两版本真实翻译资源类型检查通过，错误的新i18n shim在旧类型环境被负向检查拒绝
+- 旧1.17.1补丁和baseline内容未改变；新增1.11.1专用补丁、翻译shim及精确版本选择器
+- 完整Dify部署、公司浏览器/持久化和Docker执行仍未验收。详细证据见COMPATIBILITY-1.11.1.md与frontend/COMPATIBILITY.md
