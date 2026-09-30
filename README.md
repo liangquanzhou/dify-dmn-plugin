@@ -8,6 +8,15 @@ Configure `table_json` as a static JSON string and bind upstream `values_json`. 
 
 The `.difypkg` installs a standard Tool only. It does **not** add a visual table editor. The old v0.1.x XML/KIE frontend patches are incompatible with this version and must not be applied.
 
+## Install from GitHub
+
+1. In a test Workspace, open **Plugins → Install from GitHub**
+2. Enter `https://github.com/liangquanzhou/dify-dmn-plugin`
+3. Select **v0.2.0**, then its only `.difypkg` asset: `liangquanzhou-dmn_decision-0.2.0-unsigned.difypkg`. Do not select an older release or a source ZIP
+4. Add **Evaluate JSON Table** to your workflow. Set `table_json` and bind `values_json`; no engine address or provider credentials are required
+
+The release asset is unsigned. If company policy rejects it, ask the administrator to review and use the approved signing/distribution process; keep signature verification enabled. Local-file installation is an administrator fallback **only if that option is available in your Dify deployment**.
+
 ## Source layout
 
 - `plugin/`: pure Python evaluator, bounded JSON boundary, standard Dify provider/tool

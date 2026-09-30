@@ -6,10 +6,12 @@
 
 ## 安装
 
-1. 在测试 Workspace 安装 `liangquanzhou-dmn_decision-0.2.0-unsigned.difypkg`。本交付未签名，若企业开启签名要求，先由管理员审查并使用公司批准的签名密钥签名；保持签名校验开启
-2. 使用 Dify 的 Plugins → Install Plugin → Via Local File 选择经管理员批准的包。若随后通过 GitHub 发布，需要选择 **v0.2.0** Release 中同版本的 `.difypkg` asset；仅提交源码不能用于 GitHub 插件安装
-3. 插件列表应显示“JSON 决策表”，无需填写提供方凭据
+1. 在测试 Workspace 打开 **Plugins → Install from GitHub**，输入仓库地址：`https://github.com/liangquanzhou/dify-dmn-plugin`
+2. 选择 **v0.2.0**，再选择该 Release 中唯一的 `.difypkg` 文件：`liangquanzhou-dmn_decision-0.2.0-unsigned.difypkg`，按界面提示安装。不要选旧版或源码 ZIP
+3. 插件列表应显示“JSON 决策表”，无需填写引擎地址或提供方凭据
 4. 工作流添加“执行 JSON 决策表”Tool。参数只有 `table_json`（静态 JSON 表）和 `values_json`（绑定上游 JSON 字符串）
+
+本 Release 的包未签名。如果公司策略拒绝未签名插件，请交管理员审查并按公司批准的签名/分发流程处理，保持签名校验开启。只有公司 Dify 实际提供本地文件安装入口时，管理员才可将本地安装作为备用；没有该入口无需寻找。
 
 插件技术身份仍为 `liangquanzhou/dmn_decision` / provider `dmn` / tool `evaluate`。这用于有意识地升级现有插件，并不表示 v0.2.0 支持标准 DMN。升级旧 0.1.x 是破坏性变更，先备份并新建测试节点，不能让生产旧 XML 工作流直接使用新版。
 
