@@ -1,0 +1,30 @@
+{
+  "name": "dify-dmn-editor-verification",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "test:browser": "playwright test",
+    "typecheck": "tsc --noEmit",
+    "build": "vite build",
+    "dev": "vite --host 127.0.0.1"
+  },
+  "dependencies": {
+    "dmn-js": "17.12.2",
+    "i18next": "26.4.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "react-i18next": "17.0.12"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.58.2",
+    "@testing-library/react": "16.3.2",
+    "@testing-library/user-event": "14.6.1",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "happy-dom": "20.7.0",
+    "typescript": "5.9.3",
+    "vite": "7.3.1",
+    "esbuild": "0.27.7"
+  }
+}

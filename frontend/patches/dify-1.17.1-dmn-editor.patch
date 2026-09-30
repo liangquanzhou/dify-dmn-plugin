@@ -1,0 +1,991 @@
+diff --git a/web/app/components/workflow/nodes/tool/components/dmn-editor/contract.ts b/web/app/components/workflow/nodes/tool/components/dmn-editor/contract.ts
+new file mode 100644
+--- /dev/null
++++ b/web/app/components/workflow/nodes/tool/components/dmn-editor/contract.ts
+@@ -0,0 +1,68 @@
++/** Dify 1.17.1 plugin identity. Deliberately exact: never match by tool name alone. */
++export const DMN_IDENTITY = {
++  plugin_id: 'liangquanzhou/dmn_decision',
++  provider_id: 'liangquanzhou/dmn_decision/dmn',
++  provider_type: 'builtin',
++  tool_name: 'evaluate',
++} as const
++
++export function isDmnTool(node: {
++  plugin_id?: string
++  provider_id?: string
++  provider_type?: string
++  tool_name?: string
++}): boolean {
++  return node.provider_type === DMN_IDENTITY.provider_type
++    && node.provider_id === DMN_IDENTITY.provider_id
++    && node.tool_name === DMN_IDENTITY.tool_name
++    // Older imported DSL can omit plugin_id; the canonical provider still contains it.
++    && (node.plugin_id === undefined || node.plugin_id === DMN_IDENTITY.plugin_id)
++}
++
++/** Static form values in Dify 1.17.1 are ResourceVarInputs, not raw XML strings. */
++export function readModelXml(config: Record<string, unknown>): string {
++  const field = config.model_xml
++  if (field === undefined || field === null) return ''
++  if (typeof field === 'string') return field // migrated/legacy DSL
++  if (typeof field === 'object' && 'value' in field && typeof field.value === 'string') {
++    if ('type' in field && field.type !== 'constant' && field.type !== 'mixed')
++      throw new Error('model_xml must be a static constant, not a variable binding')
++    return field.value
++  }
++  throw new Error('model_xml must contain a static XML string')
++}
++
++export function withModelXml(config: Record<string, unknown>, xml: string): Record<string, unknown> {
++  return { ...config, model_xml: { type: 'constant', value: xml } }
++}
++
++export const INITIAL_DMN = `<?xml version="1.0" encoding="UTF-8"?>
++<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/"
++             id="eligibility_model" name="Eligibility" namespace="urn:example:eligibility">
++  <inputData id="input_age" name="age"><variable id="var_age" name="age" typeRef="number"/></inputData>
++  <inputData id="input_risk" name="risk_score"><variable id="var_risk" name="risk_score" typeRef="number"/></inputData>
++  <decision id="eligibility" name="Eligibility result">
++    <variable id="var_result" name="Eligibility result"/>
++    <informationRequirement><requiredInput href="#input_age"/></informationRequirement>
++    <informationRequirement><requiredInput href="#input_risk"/></informationRequirement>
++    <decisionTable id="eligibility_table" hitPolicy="UNIQUE">
++      <input id="age_clause" label="Age"><inputExpression id="age_expression" typeRef="number"><text>age</text></inputExpression></input>
++      <input id="risk_clause" label="Risk score"><inputExpression id="risk_expression" typeRef="number"><text>risk_score</text></inputExpression></input>
++      <output id="out_eligible" name="eligible" typeRef="boolean"/>
++      <output id="out_reason" name="reason" typeRef="string"/>
++      <rule id="rule_minor"><inputEntry id="minor_age"><text>[0..18)</text></inputEntry><inputEntry id="minor_risk"><text>[0..100]</text></inputEntry><outputEntry id="minor_eligible"><text>false</text></outputEntry><outputEntry id="minor_reason"><text>"under_age"</text></outputEntry></rule>
++      <rule id="rule_eligible"><inputEntry id="eligible_age"><text>&gt;= 18</text></inputEntry><inputEntry id="eligible_risk"><text>[0..60)</text></inputEntry><outputEntry id="eligible_value"><text>true</text></outputEntry><outputEntry id="eligible_reason"><text>"low_risk_adult"</text></outputEntry></rule>
++      <rule id="rule_high_risk"><inputEntry id="high_age"><text>&gt;= 18</text></inputEntry><inputEntry id="high_risk"><text>[60..100]</text></inputEntry><outputEntry id="high_value"><text>false</text></outputEntry><outputEntry id="high_reason"><text>"high_risk"</text></outputEntry></rule>
++    </decisionTable>
++  </decision>
++</definitions>`
++
++export const MAX_XML_BYTES = 512 * 1024
++
++export function checkXmlEnvelope(xml: string): void {
++  if (!xml.trim()) throw new Error('Empty DMN XML')
++  if (new TextEncoder().encode(xml).length > MAX_XML_BYTES)
++    throw new Error('DMN XML exceeds 512 KiB')
++  if (/<!DOCTYPE|<!ENTITY/i.test(xml))
++    throw new Error('DOCTYPE and ENTITY declarations are not accepted')
++}
+diff --git a/web/app/components/workflow/nodes/tool/components/dmn-editor/dmn-editor.css b/web/app/components/workflow/nodes/tool/components/dmn-editor/dmn-editor.css
+new file mode 100644
+--- /dev/null
++++ b/web/app/components/workflow/nodes/tool/components/dmn-editor/dmn-editor.css
+@@ -0,0 +1,14 @@
++/* dmn-js styles and its bpmn.io attribution remain intact. */
++.dify-dmn-editor { color: #182230; background: #fff; border: 1px solid #d0d5dd; border-radius: 8px; margin: 12px 16px; padding: 10px; }
++.dify-dmn-editor:fullscreen { overflow: auto; margin: 0; padding: 24px; }
++.dify-dmn-toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-block: 8px; }
++.dify-dmn-editor button { border: 1px solid #98a2b3; border-radius: 6px; padding: 5px 10px; background: #fff; font-size: 12px; }
++.dify-dmn-editor button:disabled { opacity: .5; cursor: not-allowed; }
++.dify-dmn-editor button:focus-visible, .dify-dmn-editor input:focus-visible, .dify-dmn-editor select:focus-visible { outline: 2px solid #155eef; outline-offset: 2px; }
++.dify-dmn-canvas { height: 460px; position: relative; overflow: auto; border: 1px solid #eaecf0; }
++.dify-dmn-editor:fullscreen .dify-dmn-canvas { height: calc(100vh - 220px); }
++.dify-dmn-canvas .dmn-js-parent { min-height: 440px; }
++.dify-dmn-status { font-size: 12px; line-height: 1.5; }
++.dify-dmn-error { color: #b42318; white-space: pre-wrap; overflow-wrap: anywhere; }
++.dify-dmn-editor input[type=file] { max-width: 100%; font-size: 12px; }
++.dify-dmn-editor textarea { width: 100%; min-height: 160px; font-family: monospace; font-size: 11px; }
+diff --git a/web/app/components/workflow/nodes/tool/components/dmn-editor/dmn-editor.tsx b/web/app/components/workflow/nodes/tool/components/dmn-editor/dmn-editor.tsx
+new file mode 100644
+--- /dev/null
++++ b/web/app/components/workflow/nodes/tool/components/dmn-editor/dmn-editor.tsx
+@@ -0,0 +1,333 @@
++'use client'
++
++import type { ChangeEvent, FormEvent } from 'react'
++import type { DmnConstructor, DmnInstance, DmnView } from './dmn-types'
++import { useEffect, useId, useRef, useState } from 'react'
++import { checkXmlEnvelope, INITIAL_DMN, MAX_XML_BYTES } from './contract'
++import { getDraft, getPendingDraft, putDraft, putPendingDraft } from './drafts'
++import 'dmn-js/dist/assets/diagram-js.css'
++import 'dmn-js/dist/assets/dmn-js-shared.css'
++import 'dmn-js/dist/assets/dmn-js-drd.css'
++import 'dmn-js/dist/assets/dmn-js-decision-table.css'
++import 'dmn-js/dist/assets/dmn-js-decision-table-controls.css'
++import 'dmn-js/dist/assets/dmn-js-literal-expression.css'
++import 'dmn-js/dist/assets/dmn-js-boxed-expression.css'
++import 'dmn-js/dist/assets/dmn-js-boxed-expression-controls.css'
++import 'dmn-js/dist/assets/dmn-font/css/dmn.css'
++import './dmn-editor.css'
++
++export type EditorLabels = {
++  title: string
++  save: string
++  reset: string
++  export: string
++  import: string
++  fullscreen: string
++  view: string
++  loading: string
++  dirty: string
++  saved: string
++  help: string
++  replaceConfirm: string
++  conflict: string
++  error: string
++}
++
++type Props = {
++  nodeId: string
++  draftScope: object
++  savedXml: string
++  configurationError?: string
++  readOnly: boolean
++  onSave: (xml: string) => void
++  labels: EditorLabels
++}
++
++type Session = {
++  modeler: DmnInstance
++  xml: string
++  base: string
++  valid: boolean
++  dirty: boolean
++  importing: boolean
++  revision: number
++  disposed: boolean
++}
++
++function errorMessage(error: unknown): string {
++  return error instanceof Error ? error.message : String(error)
++}
++
++async function importChecked(modeler: DmnInstance, xml: string): Promise<void> {
++  checkXmlEnvelope(xml)
++  const document = new DOMParser().parseFromString(xml, 'application/xml')
++  if (document.querySelector('parsererror'))
++    throw new Error(document.querySelector('parsererror')?.textContent || 'Malformed XML')
++  const { warnings } = await modeler.importXML(xml)
++  if (warnings.length)
++    throw new Error(warnings.map(errorMessage).join('\n'))
++}
++
++async function exportChecked(modeler: DmnInstance): Promise<string> {
++  const { xml } = await modeler.saveXML({ format: true })
++  if (!xml) throw new Error('dmn-js returned no XML')
++  checkXmlEnvelope(xml)
++  return xml
++}
++
++export default function DmnEditor({ nodeId, draftScope, savedXml, configurationError, readOnly, onSave, labels }: Props) {
++  const canvas = useRef<HTMLDivElement>(null)
++  const root = useRef<HTMLElement>(null)
++  const session = useRef<Session | null>(null)
++  const props = useRef({ savedXml, onSave, configurationError })
++  const fileId = useId()
++  const statusId = useId()
++  const [busy, setBusy] = useState(true)
++  const [dirty, setDirty] = useState(false)
++  const [valid, setValid] = useState(false)
++  const [baseXml, setBaseXml] = useState(savedXml)
++  const [error, setError] = useState(configurationError || '')
++  const [rejectedXml, setRejectedXml] = useState('')
++  const [views, setViews] = useState<DmnView[]>([])
++  const [activeView, setActiveView] = useState('')
++  const conflict = dirty && savedXml !== baseXml
++
++  useEffect(() => {
++    props.current = { savedXml, onSave, configurationError }
++  }, [savedXml, onSave, configurationError])
++
++  // dmn-js is a browser-only imperative widget; each node session owns its lifetime.
++  useEffect(() => {
++    let cancelled = false
++    let current: Session | null = null
++    let initial = { xml: savedXml || INITIAL_DMN, base: savedXml, dirty: !savedXml && !readOnly }
++    const remember = (s: Session) => {
++      if (!readOnly) putDraft(draftScope, nodeId, { xml: s.xml, base: s.base, dirty: s.dirty })
++    }
++    const capture = async () => {
++      const s = current
++      if (!s || s.importing || s.disposed || readOnly) return
++      s.dirty = true
++      const revision = ++s.revision
++      setDirty(true)
++      try {
++        const xml = await exportChecked(s.modeler)
++        if (revision !== s.revision) return
++        s.xml = xml
++        remember(s)
++      } catch (cause) {
++        if (!s.disposed) setError(errorMessage(cause))
++      }
++    }
++    const refreshViews = () => {
++      if (!current || current.disposed) return
++      setViews(current.modeler.getViews())
++      setActiveView(current.modeler.getActiveView()?.id || '')
++    }
++    const start = async () => {
++      setBusy(true)
++      setValid(false)
++      setError(configurationError || '')
++      setRejectedXml('')
++      try {
++        await getPendingDraft(draftScope, nodeId)
++        if (cancelled) return
++        const cache = getDraft(draftScope, nodeId)
++        if (!readOnly && cache?.dirty) initial = cache
++        const module = readOnly ? await import('dmn-js/lib/NavigatedViewer') : await import('dmn-js/lib/Modeler')
++        if (cancelled || !canvas.current) return
++        const Constructor = module.default as DmnConstructor
++        const modeler = new Constructor({ container: canvas.current, width: '100%', height: '100%' })
++        current = { modeler, ...initial, valid: false, importing: true, revision: 0, disposed: false }
++        session.current = current
++        modeler.on('viewer.created', ({ viewer }) => viewer.on('commandStack.changed', () => { void capture() }))
++        modeler.on('views.changed', refreshViews)
++        modeler.on('view.changed', refreshViews)
++        if (props.current.configurationError) throw new Error(props.current.configurationError)
++        await importChecked(modeler, initial.xml)
++        if (cancelled) return
++        current.valid = true
++        current.importing = false
++        setValid(true)
++        setDirty(initial.dirty)
++        setBaseXml(initial.base)
++        remember(current)
++        refreshViews()
++      } catch (cause) {
++        if (!cancelled) {
++          setError(errorMessage(cause))
++          setRejectedXml(initial.xml)
++        }
++      } finally {
++        if (!cancelled) setBusy(false)
++      }
++    }
++    void start()
++    return () => {
++      cancelled = true
++      if (current) {
++        const s = current
++        s.disposed = true
++        // Save the final snapshot before destruction, including same-tick edits/navigation.
++        if (!readOnly && s.valid && !s.importing) {
++          const pending = exportChecked(s.modeler).then((xml) => {
++            s.xml = xml
++            remember(s)
++          }).finally(() => s.modeler.destroy()).catch(() => {})
++          putPendingDraft(draftScope, nodeId, pending)
++        } else {
++          s.modeler.destroy()
++        }
++      }
++      session.current = null
++    }
++  }, [draftScope, nodeId, readOnly, savedXml, configurationError])
++
++  useEffect(() => {
++    if (!dirty) return
++    const beforeUnload = (event: BeforeUnloadEvent) => {
++      event.preventDefault()
++      event.returnValue = ''
++    }
++    window.addEventListener('beforeunload', beforeUnload)
++    return () => window.removeEventListener('beforeunload', beforeUnload)
++  }, [dirty])
++
++  const replaceXml = async (xml: string, reset = false) => {
++    const s = session.current
++    if (!s || readOnly || busy) return
++    if (dirty && !window.confirm(labels.replaceConfirm)) return
++    setBusy(true)
++    s.importing = true
++    let validator: DmnInstance | undefined
++    try {
++      // Validate in a disposable viewer, so failed input cannot erase the current canvas.
++      const { default: Viewer } = await import('dmn-js/lib/NavigatedViewer')
++      validator = new Viewer({ container: document.createElement('div'), width: '100%', height: '100%' })
++      await importChecked(validator, xml)
++      await importChecked(s.modeler, xml)
++      s.xml = xml
++      s.base = props.current.savedXml
++      s.dirty = !reset || !props.current.savedXml
++      s.valid = true
++      ++s.revision
++      putDraft(draftScope, nodeId, { xml, base: s.base, dirty: s.dirty })
++      if (s.disposed) return
++      setDirty(s.dirty)
++      setBaseXml(s.base)
++      setValid(true)
++      setError('')
++      setRejectedXml('')
++      setViews(s.modeler.getViews())
++      setActiveView(s.modeler.getActiveView()?.id || '')
++    } catch (cause) {
++      if (!s.disposed) {
++        setError(errorMessage(cause))
++        setRejectedXml(xml)
++      }
++      // A rendering-only failure may occur after validation. Restore the previous model.
++      if (s.valid) {
++        try { await importChecked(s.modeler, s.xml) }
++        catch (restoreError) {
++          s.valid = false
++          if (!s.disposed) {
++            setValid(false)
++            setError(`${errorMessage(cause)}\n${errorMessage(restoreError)}`)
++          }
++        }
++      }
++    } finally {
++      validator?.destroy()
++      s.importing = false
++      if (!s.disposed) setBusy(false)
++    }
++  }
++
++  const importFile = async (event: ChangeEvent<HTMLInputElement>) => {
++    const file = event.target.files?.[0]
++    event.target.value = '' // selecting the same filename again must work
++    if (!file) return
++    try {
++      if (!/\.dmn$/i.test(file.name)) throw new Error('Select a .dmn file')
++      if (file.size > MAX_XML_BYTES) throw new Error('DMN XML exceeds 512 KiB')
++      await replaceXml(await file.text())
++    } catch (cause) { setError(errorMessage(cause)) }
++  }
++
++  const save = async (event: FormEvent) => {
++    event.preventDefault()
++    const s = session.current
++    if (!s || !s.valid || readOnly || busy || conflict || error) return
++    setBusy(true)
++    try {
++      const xml = await exportChecked(s.modeler)
++      if (s.disposed) return
++      props.current.onSave(xml)
++      s.xml = xml
++      s.base = xml
++      s.dirty = false
++      ++s.revision
++      putDraft(draftScope, nodeId, { xml, base: xml, dirty: false })
++      setDirty(false)
++      setBaseXml(xml)
++    } catch (cause) { setError(errorMessage(cause)) }
++    finally { if (!s.disposed) setBusy(false) }
++  }
++
++  const download = async () => {
++    const s = session.current
++    if (!s?.valid || busy || error) return
++    try {
++      const xml = await exportChecked(s.modeler)
++      const url = URL.createObjectURL(new Blob([xml], { type: 'application/xml;charset=utf-8' }))
++      const anchor = document.createElement('a')
++      anchor.href = url
++      anchor.download = 'decision-model.dmn'
++      anchor.click()
++      setTimeout(() => URL.revokeObjectURL(url), 0)
++    } catch (cause) { setError(errorMessage(cause)) }
++  }
++
++  return (
++    <section ref={root} className="dify-dmn-editor" aria-label={labels.title}>
++      <strong>{labels.title}</strong>
++      <p className="dify-dmn-status">{labels.help}</p>
++      <form onSubmit={save} aria-label={labels.title} aria-describedby={statusId}>
++        <div className="dify-dmn-toolbar">
++          <button type="submit" disabled={readOnly || busy || !valid || !dirty || conflict || !!error}>{labels.save}</button>
++          <button type="button" disabled={readOnly || busy} onClick={() => { void replaceXml(props.current.savedXml || INITIAL_DMN, true) }}>{labels.reset}</button>
++          <button type="button" disabled={busy || !valid || !!error} onClick={() => { void download() }}>{labels.export} .dmn</button>
++          <button type="button" onClick={() => {
++            const promise = document.fullscreenElement ? document.exitFullscreen() : root.current?.requestFullscreen()
++            void promise?.catch(cause => setError(errorMessage(cause)))
++          }}>{labels.fullscreen}</button>
++        </div>
++        {!readOnly && <div className="dify-dmn-toolbar">
++          <label htmlFor={fileId}>{labels.import} .dmn</label>
++          <input id={fileId} type="file" accept=".dmn" disabled={busy} onChange={event => { void importFile(event) }} />
++        </div>}
++      </form>
++      <div id={statusId} className="dify-dmn-status" role="status" aria-live="polite">
++        {busy ? labels.loading : error || configurationError ? labels.error : dirty ? labels.dirty : labels.saved}
++      </div>
++      {conflict && <p role="alert" className="dify-dmn-error">{labels.conflict}</p>}
++      {(error || configurationError) && <div role="alert" className="dify-dmn-error">
++        <strong>{labels.error}</strong>{' '}{error || configurationError}
++        {rejectedXml && <details><summary>XML</summary><textarea aria-label="XML" readOnly value={rejectedXml} /></details>}
++      </div>}
++      {views.length > 1 && <label className="dify-dmn-toolbar">
++        {labels.view}
++        <select disabled={busy} value={activeView} onChange={async event => {
++          const view = views.find(item => item.id === event.target.value)
++          const s = session.current
++          if (!view || !s) return
++          setBusy(true)
++          try { await s.modeler.open(view); setActiveView(view.id) }
++          catch (cause) { setError(errorMessage(cause)) }
++          finally { if (!s.disposed) setBusy(false) }
++        }}>{views.map(view => <option key={view.id} value={view.id}>{view.name || view.type}</option>)}</select>
++      </label>}
++      <div ref={canvas} className="dify-dmn-canvas" aria-busy={busy} />
++    </section>
++  )
++}
+diff --git a/web/app/components/workflow/nodes/tool/components/dmn-editor/dmn-types.ts b/web/app/components/workflow/nodes/tool/components/dmn-editor/dmn-types.ts
+new file mode 100644
+--- /dev/null
++++ b/web/app/components/workflow/nodes/tool/components/dmn-editor/dmn-types.ts
+@@ -0,0 +1,15 @@
++/** Narrow public dmn-js contract used by this integration (upstream ships no TS types). */
++export type DmnView = { id: string; name?: string; type: string }
++export type DmnViewer = {
++  on: (event: string, handler: () => void) => void
++}
++export type DmnInstance = {
++  importXML: (xml: string) => Promise<{ warnings: Error[] }>
++  saveXML: (options: { format: boolean }) => Promise<{ xml?: string }>
++  getViews: () => DmnView[]
++  getActiveView: () => DmnView | undefined
++  open: (view: DmnView) => Promise<unknown>
++  on: (event: string, handler: (event: { viewer: DmnViewer }) => void) => void
++  destroy: () => void
++}
++export type DmnConstructor = new (options: { container: HTMLElement; width: string; height: string }) => DmnInstance
+diff --git a/web/app/components/workflow/nodes/tool/components/dmn-editor/drafts.ts b/web/app/components/workflow/nodes/tool/components/dmn-editor/drafts.ts
+new file mode 100644
+--- /dev/null
++++ b/web/app/components/workflow/nodes/tool/components/dmn-editor/drafts.ts
+@@ -0,0 +1,29 @@
++/** In-memory only, scoped to the actual Dify workflow store. No XML in browser storage.
++ * A draft survives switching nodes/panels, but does not leak between workflow stores.
++ */
++export type Draft = { xml: string; base: string; dirty: boolean }
++const scopes = new WeakMap<object, Map<string, Draft>>()
++
++export function getDraft(scope: object, nodeId: string): Draft | undefined {
++  return scopes.get(scope)?.get(nodeId)
++}
++
++export function putDraft(scope: object, nodeId: string, draft: Draft): void {
++  let nodes = scopes.get(scope)
++  if (!nodes) {
++    nodes = new Map()
++    scopes.set(scope, nodes)
++  }
++  nodes.set(nodeId, draft)
++}
++
++const pending = new WeakMap<object, Map<string, Promise<void>>>()
++export function getPendingDraft(scope: object, nodeId: string): Promise<void> | undefined {
++  return pending.get(scope)?.get(nodeId)
++}
++export function putPendingDraft(scope: object, nodeId: string, promise: Promise<void>): void {
++  let nodes = pending.get(scope)
++  if (!nodes) { nodes = new Map(); pending.set(scope, nodes) }
++  nodes.set(nodeId, promise)
++  void promise.finally(() => { if (nodes?.get(nodeId) === promise) nodes.delete(nodeId) })
++}
+diff --git a/web/app/components/workflow/nodes/tool/components/dmn-editor/panel-adapter.tsx b/web/app/components/workflow/nodes/tool/components/dmn-editor/panel-adapter.tsx
+new file mode 100644
+--- /dev/null
++++ b/web/app/components/workflow/nodes/tool/components/dmn-editor/panel-adapter.tsx
+@@ -0,0 +1,45 @@
++'use client'
++
++import type { EditorLabels } from './dmn-editor'
++import { lazy, Suspense } from 'react'
++import { useTranslation } from 'react-i18next'
++import { readModelXml, withModelXml } from './contract'
++
++const DmnEditor = lazy(() => import('./dmn-editor'))
++
++type Props = {
++  nodeId: string
++  draftScope: object
++  configuration: Record<string, unknown>
++  readOnly: boolean
++  onChange: (configuration: Record<string, unknown>) => void
++}
++
++export default function DmnPanelAdapter({ nodeId, draftScope, configuration, readOnly, onChange }: Props) {
++  const { t } = useTranslation()
++  let savedXml = ''
++  let configurationError: string | undefined
++  try { savedXml = readModelXml(configuration) }
++  catch (error) { configurationError = error instanceof Error ? error.message : String(error) }
++  const labels: EditorLabels = {
++    title: 'DMN',
++    save: t(($) => $['operation.save'], { ns: 'common' }),
++    reset: t(($) => $['operation.reset'], { ns: 'common' }),
++    export: t(($) => $['operation.export'], { ns: 'common' }),
++    import: t(($) => $['operation.upload'], { ns: 'common' }),
++    fullscreen: t(($) => $['operation.toggleFullscreen'], { ns: 'common' }),
++    view: t(($) => $['operation.view'], { ns: 'common' }),
++    loading: t(($) => $['operation.saving'], { ns: 'common' }),
++    error: t(($) => $['api.actionFailed'], { ns: 'common' }),
++    saved: t(($) => $['nodes.tool.dmn.saved'], { ns: 'workflow' }),
++    dirty: t(($) => $['nodes.tool.dmn.dirty'], { ns: 'workflow' }),
++    help: t(($) => $['nodes.tool.dmn.help'], { ns: 'workflow' }),
++    replaceConfirm: t(($) => $['nodes.tool.dmn.replaceConfirm'], { ns: 'workflow' }),
++    conflict: t(($) => $['nodes.tool.dmn.conflict'], { ns: 'workflow' }),
++  }
++  return <Suspense fallback={<p role="status">DMN…</p>}>
++    <DmnEditor key={nodeId} nodeId={nodeId} draftScope={draftScope} savedXml={savedXml}
++      configurationError={configurationError} readOnly={readOnly} labels={labels}
++      onSave={xml => onChange(withModelXml(configuration, xml))} />
++  </Suspense>
++}
+diff --git a/web/app/components/workflow/nodes/tool/components/dmn-editor/vendor.d.ts b/web/app/components/workflow/nodes/tool/components/dmn-editor/vendor.d.ts
+new file mode 100644
+--- /dev/null
++++ b/web/app/components/workflow/nodes/tool/components/dmn-editor/vendor.d.ts
+@@ -0,0 +1,8 @@
++declare module 'dmn-js/lib/Modeler' {
++  const Modeler: import('./dmn-types').DmnConstructor
++  export default Modeler
++}
++declare module 'dmn-js/lib/NavigatedViewer' {
++  const Viewer: import('./dmn-types').DmnConstructor
++  export default Viewer
++}
+diff --git a/web/app/components/workflow/nodes/tool/panel.tsx b/web/app/components/workflow/nodes/tool/panel.tsx
+--- a/web/app/components/workflow/nodes/tool/panel.tsx
++++ b/web/app/components/workflow/nodes/tool/panel.tsx
+@@ -7,7 +7,7 @@
+ import Field from '@/app/components/workflow/nodes/_base/components/field'
+ import OutputVars, { VarItem } from '@/app/components/workflow/nodes/_base/components/output-vars'
+ import StructureOutputItem from '@/app/components/workflow/nodes/_base/components/variable/object-child-tree-panel/show'
+-import { useStore } from '@/app/components/workflow/store'
++import { useStore, useWorkflowStore } from '@/app/components/workflow/store'
+ import { wrapStructuredVarItem } from '@/app/components/workflow/utils/tool'
+ import Split from '../_base/components/split'
+ import useMatchSchemaType, {
+@@ -15,6 +15,8 @@
+ } from '../_base/components/variable/use-match-schema-type'
+ import ToolForm from './components/tool-form'
+ import useConfig from './hooks/use-config'
++import { isDmnTool } from './components/dmn-editor/contract'
++import DmnPanelAdapter from './components/dmn-editor/panel-adapter'
+ 
+ const i18nPrefix = 'nodes.tool'
+ 
+@@ -36,6 +38,12 @@
+     currTool,
+   } = useConfig(id, data)
+ 
++  const draftScope = useWorkflowStore()
++  const showDmnEditor = isDmnTool(inputs)
++  const visibleToolSettingSchema = showDmnEditor
++    ? toolSettingSchema.filter(item => item.variable !== 'model_xml')
++    : toolSettingSchema
++
+   const [collapsed, setCollapsed] = React.useState(false)
+   const pipelineId = useStore((s) => s.pipelineId)
+   const setShowInputFieldPanel = useStore((s) => s.setShowInputFieldPanel)
+@@ -53,6 +61,15 @@
+     <div className="pt-2">
+       {!isShowAuthBtn && (
+         <div className="relative">
++          {showDmnEditor && (
++            <DmnPanelAdapter
++              nodeId={id}
++              draftScope={draftScope}
++              configuration={toolSettingValue}
++              readOnly={readOnly}
++              onChange={setToolSettingValue}
++            />
++          )}
+           {toolInputVarSchema.length > 0 && (
+             <Field
+               className="px-4"
+@@ -72,11 +89,11 @@
+             </Field>
+           )}
+ 
+-          {toolInputVarSchema.length > 0 && toolSettingSchema.length > 0 && (
++          {toolInputVarSchema.length > 0 && visibleToolSettingSchema.length > 0 && (
+             <Split className="mt-1" />
+           )}
+ 
+-          {toolSettingSchema.length > 0 && (
++          {visibleToolSettingSchema.length > 0 && (
+             <>
+               <OutputVars
+                 title={t(($) => $[`${i18nPrefix}.settings`], { ns: 'workflow' })}
+@@ -86,7 +103,7 @@
+                 <ToolForm
+                   readOnly={readOnly}
+                   nodeId={id}
+-                  schema={toolSettingSchema as any}
++                  schema={visibleToolSettingSchema as any}
+                   value={toolSettingValue}
+                   onChange={setToolSettingValue}
+                 />
+diff --git a/web/i18n/ar-TN/workflow.json b/web/i18n/ar-TN/workflow.json
+--- a/web/i18n/ar-TN/workflow.json
++++ b/web/i18n/ar-TN/workflow.json
+@@ -893,6 +893,11 @@
+   "nodes.tool.authorizationRequired": "التفويض مطلوب",
+   "nodes.tool.dateRange.endPlaceholder": "تاريخ الانتهاء",
+   "nodes.tool.dateRange.startPlaceholder": "تاريخ البدء",
++  "nodes.tool.dmn.conflict": "تغيّر XML لسير العمل. صدّر المسودة ثم أعد الضبط قبل الحفظ.",
++  "nodes.tool.dmn.dirty": "تغييرات DMN غير محفوظة",
++  "nodes.tool.dmn.help": "احفظ تغييرات DMN قبل التشغيل أو النشر. تستخدم البيانات حقول الإدخال الأصلية.",
++  "nodes.tool.dmn.replaceConfirm": "تجاهل تغييرات DMN غير المحفوظة؟",
++  "nodes.tool.dmn.saved": "تم الحفظ في مسودة سير العمل",
+   "nodes.tool.inputVars": "متغيرات الإدخال",
+   "nodes.tool.insertPlaceholder1": "اكتب أو اضغط",
+   "nodes.tool.insertPlaceholder2": "لإدراج متغير",
+diff --git a/web/i18n/de-DE/workflow.json b/web/i18n/de-DE/workflow.json
+--- a/web/i18n/de-DE/workflow.json
++++ b/web/i18n/de-DE/workflow.json
+@@ -893,6 +893,11 @@
+   "nodes.tool.authorizationRequired": "Autorisierung erforderlich",
+   "nodes.tool.dateRange.endPlaceholder": "Enddatum",
+   "nodes.tool.dateRange.startPlaceholder": "Startdatum",
++  "nodes.tool.dmn.conflict": "Das Workflow-XML wurde geändert. Exportieren Sie Ihren Entwurf und setzen Sie ihn vor dem Speichern zurück.",
++  "nodes.tool.dmn.dirty": "Ungespeicherte DMN-Änderungen",
++  "nodes.tool.dmn.help": "DMN-Änderungen vor dem Ausführen oder Veröffentlichen speichern. Fakten verwenden die vorhandenen Eingabefelder.",
++  "nodes.tool.dmn.replaceConfirm": "Ungespeicherte DMN-Änderungen verwerfen?",
++  "nodes.tool.dmn.saved": "Im Workflow-Entwurf gespeichert",
+   "nodes.tool.inputVars": "Eingabevariablen",
+   "nodes.tool.insertPlaceholder1": "Tippen oder drücken",
+   "nodes.tool.insertPlaceholder2": "Fügen Sie die Variable ein.",
+diff --git a/web/i18n/en-US/workflow.json b/web/i18n/en-US/workflow.json
+--- a/web/i18n/en-US/workflow.json
++++ b/web/i18n/en-US/workflow.json
+@@ -893,6 +893,11 @@
+   "nodes.tool.authorizationRequired": "Authorization required",
+   "nodes.tool.dateRange.endPlaceholder": "End date",
+   "nodes.tool.dateRange.startPlaceholder": "Start date",
++  "nodes.tool.dmn.conflict": "The workflow XML changed. Export your draft, then reset before saving.",
++  "nodes.tool.dmn.dirty": "Unsaved DMN changes",
++  "nodes.tool.dmn.help": "Save DMN changes before running or publishing. Facts use the native input fields.",
++  "nodes.tool.dmn.replaceConfirm": "Discard unsaved DMN changes?",
++  "nodes.tool.dmn.saved": "Saved to workflow draft",
+   "nodes.tool.inputVars": "Input Variables",
+   "nodes.tool.insertPlaceholder1": "Type or press",
+   "nodes.tool.insertPlaceholder2": "insert variable",
+diff --git a/web/i18n/es-ES/workflow.json b/web/i18n/es-ES/workflow.json
+--- a/web/i18n/es-ES/workflow.json
++++ b/web/i18n/es-ES/workflow.json
+@@ -893,6 +893,11 @@
+   "nodes.tool.authorizationRequired": "Autorización requerida",
+   "nodes.tool.dateRange.endPlaceholder": "Fecha de fin",
+   "nodes.tool.dateRange.startPlaceholder": "Fecha de inicio",
++  "nodes.tool.dmn.conflict": "El XML del flujo cambió. Exporta tu borrador y restablécelo antes de guardar.",
++  "nodes.tool.dmn.dirty": "Cambios DMN sin guardar",
++  "nodes.tool.dmn.help": "Guarda los cambios DMN antes de ejecutar o publicar. Los datos usan los campos de entrada nativos.",
++  "nodes.tool.dmn.replaceConfirm": "¿Descartar los cambios DMN sin guardar?",
++  "nodes.tool.dmn.saved": "Guardado en el borrador del flujo",
+   "nodes.tool.inputVars": "Variables de entrada",
+   "nodes.tool.insertPlaceholder1": "Escribe o presiona",
+   "nodes.tool.insertPlaceholder2": "insertar variable",
+diff --git a/web/i18n/fa-IR/workflow.json b/web/i18n/fa-IR/workflow.json
+--- a/web/i18n/fa-IR/workflow.json
++++ b/web/i18n/fa-IR/workflow.json
+@@ -893,6 +893,11 @@
+   "nodes.tool.authorizationRequired": "احراز هویت الزامی است",
+   "nodes.tool.dateRange.endPlaceholder": "تاریخ پایان",
+   "nodes.tool.dateRange.startPlaceholder": "تاریخ شروع",
++  "nodes.tool.dmn.conflict": "XML گردش کار تغییر کرده است. پیش‌نویس را صادر کنید و پیش از ذخیره بازنشانی کنید.",
++  "nodes.tool.dmn.dirty": "تغییرات ذخیره‌نشدهٔ DMN",
++  "nodes.tool.dmn.help": "پیش از اجرا یا انتشار، تغییرات DMN را ذخیره کنید. داده‌ها از فیلدهای ورودی اصلی استفاده می‌کنند.",
++  "nodes.tool.dmn.replaceConfirm": "تغییرات ذخیره‌نشدهٔ DMN کنار گذاشته شوند؟",
++  "nodes.tool.dmn.saved": "در پیش‌نویس گردش کار ذخیره شد",
+   "nodes.tool.inputVars": "متغیرهای ورودی",
+   "nodes.tool.insertPlaceholder1": "تایپ کنید یا فشار دهید",
+   "nodes.tool.insertPlaceholder2": "متغیر را وارد کنید",
+diff --git a/web/i18n/fr-FR/workflow.json b/web/i18n/fr-FR/workflow.json
+--- a/web/i18n/fr-FR/workflow.json
++++ b/web/i18n/fr-FR/workflow.json
+@@ -893,6 +893,11 @@
+   "nodes.tool.authorizationRequired": "Autorisation requise",
+   "nodes.tool.dateRange.endPlaceholder": "Date de fin",
+   "nodes.tool.dateRange.startPlaceholder": "Date de début",
++  "nodes.tool.dmn.conflict": "Le XML du workflow a changé. Exportez votre brouillon, puis réinitialisez-le avant d’enregistrer.",
++  "nodes.tool.dmn.dirty": "Modifications DMN non enregistrées",
++  "nodes.tool.dmn.help": "Enregistrez les modifications DMN avant d’exécuter ou de publier. Les données utilisent les champs de saisie natifs.",
++  "nodes.tool.dmn.replaceConfirm": "Abandonner les modifications DMN non enregistrées ?",
++  "nodes.tool.dmn.saved": "Enregistré dans le brouillon du workflow",
+   "nodes.tool.inputVars": "Variables de saisie",
+   "nodes.tool.insertPlaceholder1": "Tapez ou appuyez",
+   "nodes.tool.insertPlaceholder2": "insérer une variable",
+diff --git a/web/i18n/hi-IN/workflow.json b/web/i18n/hi-IN/workflow.json
+--- a/web/i18n/hi-IN/workflow.json
++++ b/web/i18n/hi-IN/workflow.json
+@@ -893,6 +893,11 @@
+   "nodes.tool.authorizationRequired": "प्राधिकरण आवश्यक",
+   "nodes.tool.dateRange.endPlaceholder": "समाप्ति तिथि",
+   "nodes.tool.dateRange.startPlaceholder": "प्रारंभ तिथि",
++  "nodes.tool.dmn.conflict": "वर्कफ़्लो XML बदल गया है। अपना ड्राफ़्ट निर्यात करें, फिर सहेजने से पहले रीसेट करें।",
++  "nodes.tool.dmn.dirty": "DMN बदलाव सहेजे नहीं गए",
++  "nodes.tool.dmn.help": "चलाने या प्रकाशित करने से पहले DMN बदलाव सहेजें। डेटा के लिए मूल इनपुट फ़ील्ड का उपयोग करें।",
++  "nodes.tool.dmn.replaceConfirm": "बिना सहेजे DMN बदलाव छोड़ें?",
++  "nodes.tool.dmn.saved": "वर्कफ़्लो ड्राफ़्ट में सहेजा गया",
+   "nodes.tool.inputVars": "इनपुट वेरिएबल्स",
+   "nodes.tool.insertPlaceholder1": "टाइप करें या दबाएँ",
+   "nodes.tool.insertPlaceholder2": "वेरिएबल डालें",
+diff --git a/web/i18n/id-ID/workflow.json b/web/i18n/id-ID/workflow.json
+--- a/web/i18n/id-ID/workflow.json
++++ b/web/i18n/id-ID/workflow.json
+@@ -893,6 +893,11 @@
+   "nodes.tool.authorizationRequired": "Otorisasi diperlukan",
+   "nodes.tool.dateRange.endPlaceholder": "Tanggal berakhir",
+   "nodes.tool.dateRange.startPlaceholder": "Tanggal mulai",
++  "nodes.tool.dmn.conflict": "XML alur kerja berubah. Ekspor draf Anda, lalu atur ulang sebelum menyimpan.",
++  "nodes.tool.dmn.dirty": "Perubahan DMN belum disimpan",
++  "nodes.tool.dmn.help": "Simpan perubahan DMN sebelum menjalankan atau menerbitkan. Data menggunakan kolom input bawaan.",
++  "nodes.tool.dmn.replaceConfirm": "Buang perubahan DMN yang belum disimpan?",
++  "nodes.tool.dmn.saved": "Disimpan ke draf alur kerja",
+   "nodes.tool.inputVars": "Variabel Masukan",
+   "nodes.tool.insertPlaceholder1": "Ketik atau tekan",
+   "nodes.tool.insertPlaceholder2": "Sisipkan variabel",
+diff --git a/web/i18n/it-IT/workflow.json b/web/i18n/it-IT/workflow.json
+--- a/web/i18n/it-IT/workflow.json
++++ b/web/i18n/it-IT/workflow.json
+@@ -893,6 +893,11 @@
+   "nodes.tool.authorizationRequired": "Autorizzazione richiesta",
+   "nodes.tool.dateRange.endPlaceholder": "Data di fine",
+   "nodes.tool.dateRange.startPlaceholder": "Data di inizio",
++  "nodes.tool.dmn.conflict": "L’XML del flusso è cambiato. Esporta la bozza e ripristinala prima di salvare.",
++  "nodes.tool.dmn.dirty": "Modifiche DMN non salvate",
++  "nodes.tool.dmn.help": "Salva le modifiche DMN prima di eseguire o pubblicare. I dati usano i campi di input nativi.",
++  "nodes.tool.dmn.replaceConfirm": "Eliminare le modifiche DMN non salvate?",
++  "nodes.tool.dmn.saved": "Salvato nella bozza del flusso",
+   "nodes.tool.inputVars": "Variabili di Input",
+   "nodes.tool.insertPlaceholder1": "Digita o premi",
+   "nodes.tool.insertPlaceholder2": "inserisci variabile",
+diff --git a/web/i18n/ja-JP/workflow.json b/web/i18n/ja-JP/workflow.json
+--- a/web/i18n/ja-JP/workflow.json
++++ b/web/i18n/ja-JP/workflow.json
+@@ -893,6 +893,11 @@
+   "nodes.tool.authorizationRequired": "認証が必要です",
+   "nodes.tool.dateRange.endPlaceholder": "終了日",
+   "nodes.tool.dateRange.startPlaceholder": "開始日",
++  "nodes.tool.dmn.conflict": "ワークフローの XML が変更されました。下書きをエクスポートし、リセットしてから保存してください。",
++  "nodes.tool.dmn.dirty": "未保存の DMN 変更",
++  "nodes.tool.dmn.help": "実行または公開の前に DMN の変更を保存してください。データには標準の入力欄を使用します。",
++  "nodes.tool.dmn.replaceConfirm": "未保存の DMN 変更を破棄しますか？",
++  "nodes.tool.dmn.saved": "ワークフローの下書きに保存済み",
+   "nodes.tool.inputVars": "入力変数",
+   "nodes.tool.insertPlaceholder1": "タイプするか押してください",
+   "nodes.tool.insertPlaceholder2": "変数を挿入する",
+diff --git a/web/i18n/ko-KR/workflow.json b/web/i18n/ko-KR/workflow.json
+--- a/web/i18n/ko-KR/workflow.json
++++ b/web/i18n/ko-KR/workflow.json
+@@ -893,6 +893,11 @@
+   "nodes.tool.authorizationRequired": "인증 필요",
+   "nodes.tool.dateRange.endPlaceholder": "종료일",
+   "nodes.tool.dateRange.startPlaceholder": "시작일",
++  "nodes.tool.dmn.conflict": "워크플로 XML이 변경되었습니다. 초안을 내보낸 다음 초기화하고 저장하세요.",
++  "nodes.tool.dmn.dirty": "저장하지 않은 DMN 변경 사항",
++  "nodes.tool.dmn.help": "실행하거나 게시하기 전에 DMN 변경 사항을 저장하세요. 데이터는 기본 입력 필드를 사용합니다.",
++  "nodes.tool.dmn.replaceConfirm": "저장하지 않은 DMN 변경 사항을 취소할까요?",
++  "nodes.tool.dmn.saved": "워크플로 초안에 저장됨",
+   "nodes.tool.inputVars": "입력 변수",
+   "nodes.tool.insertPlaceholder1": "타이프하거나 누르세요",
+   "nodes.tool.insertPlaceholder2": "변수를 삽입하다",
+diff --git a/web/i18n/lo-LA/workflow.json b/web/i18n/lo-LA/workflow.json
+--- a/web/i18n/lo-LA/workflow.json
++++ b/web/i18n/lo-LA/workflow.json
+@@ -893,6 +893,11 @@
+   "nodes.tool.authorizationRequired": "ຕ້ອງການການອະນຸຍາດ",
+   "nodes.tool.dateRange.endPlaceholder": "ວັນທີສິ້ນສຸດ",
+   "nodes.tool.dateRange.startPlaceholder": "ວັນທີເລີ່ມຕົ້ນ",
++  "nodes.tool.dmn.conflict": "XML ຂອງເວີກໂຟລ໌ປ່ຽນແປງແລ້ວ. ສົ່ງອອກສະບັບຮ່າງ ແລ້ວຕັ້ງຄ່າໃໝ່ກ່ອນບັນທຶກ.",
++  "nodes.tool.dmn.dirty": "ການປ່ຽນແປງ DMN ຍັງບໍ່ໄດ້ບັນທຶກ",
++  "nodes.tool.dmn.help": "ບັນທຶກການປ່ຽນແປງ DMN ກ່ອນແລ່ນ ຫຼື ເຜີຍແຜ່. ຂໍ້ມູນໃຊ້ຊ່ອງປ້ອນມາດຕະຖານ.",
++  "nodes.tool.dmn.replaceConfirm": "ຍົກເລີກການປ່ຽນແປງ DMN ທີ່ຍັງບໍ່ໄດ້ບັນທຶກບໍ?",
++  "nodes.tool.dmn.saved": "ບັນທຶກໃນສະບັບຮ່າງແລ້ວ",
+   "nodes.tool.inputVars": "ຕົວປ່ຽນນຳເຂົ້າ",
+   "nodes.tool.insertPlaceholder1": "ພິມ ຫຼື ກົດ",
+   "nodes.tool.insertPlaceholder2": "ແຊກຕົວປ່ຽນ",
+diff --git a/web/i18n/nl-NL/workflow.json b/web/i18n/nl-NL/workflow.json
+--- a/web/i18n/nl-NL/workflow.json
++++ b/web/i18n/nl-NL/workflow.json
+@@ -893,6 +893,11 @@
+   "nodes.tool.authorizationRequired": "Autorisatie vereist",
+   "nodes.tool.dateRange.endPlaceholder": "Einddatum",
+   "nodes.tool.dateRange.startPlaceholder": "Startdatum",
++  "nodes.tool.dmn.conflict": "De workflow-XML is gewijzigd. Exporteer uw concept en herstel het voordat u opslaat.",
++  "nodes.tool.dmn.dirty": "Niet-opgeslagen DMN-wijzigingen",
++  "nodes.tool.dmn.help": "Sla DMN-wijzigingen op voordat u uitvoert of publiceert. Gegevens gebruiken de bestaande invoervelden.",
++  "nodes.tool.dmn.replaceConfirm": "Niet-opgeslagen DMN-wijzigingen verwijderen?",
++  "nodes.tool.dmn.saved": "Opgeslagen in workflowconcept",
+   "nodes.tool.inputVars": "Input Variables",
+   "nodes.tool.insertPlaceholder1": "Type or press",
+   "nodes.tool.insertPlaceholder2": "insert variable",
+diff --git a/web/i18n/pl-PL/workflow.json b/web/i18n/pl-PL/workflow.json
+--- a/web/i18n/pl-PL/workflow.json
++++ b/web/i18n/pl-PL/workflow.json
+@@ -893,6 +893,11 @@
+   "nodes.tool.authorizationRequired": "Wymagana autoryzacja",
+   "nodes.tool.dateRange.endPlaceholder": "Data zakończenia",
+   "nodes.tool.dateRange.startPlaceholder": "Data rozpoczęcia",
++  "nodes.tool.dmn.conflict": "XML przepływu zmienił się. Wyeksportuj wersję roboczą i zresetuj ją przed zapisaniem.",
++  "nodes.tool.dmn.dirty": "Niezapisane zmiany DMN",
++  "nodes.tool.dmn.help": "Zapisz zmiany DMN przed uruchomieniem lub publikacją. Dane korzystają z natywnych pól wejściowych.",
++  "nodes.tool.dmn.replaceConfirm": "Odrzucić niezapisane zmiany DMN?",
++  "nodes.tool.dmn.saved": "Zapisano w wersji roboczej przepływu",
+   "nodes.tool.inputVars": "Zmienne wejściowe",
+   "nodes.tool.insertPlaceholder1": "Wpisz lub naciśnij",
+   "nodes.tool.insertPlaceholder2": "wstaw zmienną",
+diff --git a/web/i18n/pt-BR/workflow.json b/web/i18n/pt-BR/workflow.json
+--- a/web/i18n/pt-BR/workflow.json
++++ b/web/i18n/pt-BR/workflow.json
+@@ -893,6 +893,11 @@
+   "nodes.tool.authorizationRequired": "Autorização necessária",
+   "nodes.tool.dateRange.endPlaceholder": "Data de Término",
+   "nodes.tool.dateRange.startPlaceholder": "Data de Início",
++  "nodes.tool.dmn.conflict": "O XML do fluxo mudou. Exporte seu rascunho e redefina-o antes de salvar.",
++  "nodes.tool.dmn.dirty": "Alterações DMN não salvas",
++  "nodes.tool.dmn.help": "Salve as alterações DMN antes de executar ou publicar. Os dados usam os campos de entrada nativos.",
++  "nodes.tool.dmn.replaceConfirm": "Descartar as alterações DMN não salvas?",
++  "nodes.tool.dmn.saved": "Salvo no rascunho do fluxo",
+   "nodes.tool.inputVars": "Variáveis de entrada",
+   "nodes.tool.insertPlaceholder1": "Digite ou pressione",
+   "nodes.tool.insertPlaceholder2": "inserir variável",
+diff --git a/web/i18n/ro-RO/workflow.json b/web/i18n/ro-RO/workflow.json
+--- a/web/i18n/ro-RO/workflow.json
++++ b/web/i18n/ro-RO/workflow.json
+@@ -893,6 +893,11 @@
+   "nodes.tool.authorizationRequired": "Autorizare necesară",
+   "nodes.tool.dateRange.endPlaceholder": "Data încheierii",
+   "nodes.tool.dateRange.startPlaceholder": "Data începerii",
++  "nodes.tool.dmn.conflict": "XML-ul fluxului s-a schimbat. Exportați ciorna, apoi resetați înainte de salvare.",
++  "nodes.tool.dmn.dirty": "Modificări DMN nesalvate",
++  "nodes.tool.dmn.help": "Salvați modificările DMN înainte de rulare sau publicare. Datele folosesc câmpurile de intrare native.",
++  "nodes.tool.dmn.replaceConfirm": "Renunțați la modificările DMN nesalvate?",
++  "nodes.tool.dmn.saved": "Salvat în ciorna fluxului",
+   "nodes.tool.inputVars": "Variabile de intrare",
+   "nodes.tool.insertPlaceholder1": "Scrieți sau apăsați",
+   "nodes.tool.insertPlaceholder2": "introduce o variabilă",
+diff --git a/web/i18n/ru-RU/workflow.json b/web/i18n/ru-RU/workflow.json
+--- a/web/i18n/ru-RU/workflow.json
++++ b/web/i18n/ru-RU/workflow.json
+@@ -893,6 +893,11 @@
+   "nodes.tool.authorizationRequired": "Требуется авторизация",
+   "nodes.tool.dateRange.endPlaceholder": "Дата окончания",
+   "nodes.tool.dateRange.startPlaceholder": "Дата начала",
++  "nodes.tool.dmn.conflict": "XML процесса изменился. Экспортируйте черновик и сбросьте изменения перед сохранением.",
++  "nodes.tool.dmn.dirty": "Несохранённые изменения DMN",
++  "nodes.tool.dmn.help": "Сохраните изменения DMN перед запуском или публикацией. Данные используют стандартные поля ввода.",
++  "nodes.tool.dmn.replaceConfirm": "Отменить несохранённые изменения DMN?",
++  "nodes.tool.dmn.saved": "Сохранено в черновик процесса",
+   "nodes.tool.inputVars": "Входные переменные",
+   "nodes.tool.insertPlaceholder1": "Наберите или нажмите",
+   "nodes.tool.insertPlaceholder2": "вставьте переменную",
+diff --git a/web/i18n/sl-SI/workflow.json b/web/i18n/sl-SI/workflow.json
+--- a/web/i18n/sl-SI/workflow.json
++++ b/web/i18n/sl-SI/workflow.json
+@@ -893,6 +893,11 @@
+   "nodes.tool.authorizationRequired": "Zahtevana je avtorizacija",
+   "nodes.tool.dateRange.endPlaceholder": "Datum konca",
+   "nodes.tool.dateRange.startPlaceholder": "Datum začetka",
++  "nodes.tool.dmn.conflict": "XML poteka se je spremenil. Izvozite osnutek in ga pred shranjevanjem ponastavite.",
++  "nodes.tool.dmn.dirty": "Neshranjene spremembe DMN",
++  "nodes.tool.dmn.help": "Pred zagonom ali objavo shranite spremembe DMN. Podatki uporabljajo izvorna vnosna polja.",
++  "nodes.tool.dmn.replaceConfirm": "Zavrzi neshranjene spremembe DMN?",
++  "nodes.tool.dmn.saved": "Shranjeno v osnutek poteka",
+   "nodes.tool.inputVars": "Vhodne spremenljivke",
+   "nodes.tool.insertPlaceholder1": "Vnesite ali pritisnite",
+   "nodes.tool.insertPlaceholder2": "vstavite spremenljivko",
+diff --git a/web/i18n/th-TH/workflow.json b/web/i18n/th-TH/workflow.json
+--- a/web/i18n/th-TH/workflow.json
++++ b/web/i18n/th-TH/workflow.json
+@@ -893,6 +893,11 @@
+   "nodes.tool.authorizationRequired": "ต้องการการอนุญาต",
+   "nodes.tool.dateRange.endPlaceholder": "วันที่สิ้นสุด",
+   "nodes.tool.dateRange.startPlaceholder": "วันที่เริ่มต้น",
++  "nodes.tool.dmn.conflict": "XML ของเวิร์กโฟลว์เปลี่ยนไปแล้ว ส่งออกฉบับร่างแล้วรีเซ็ตก่อนบันทึก",
++  "nodes.tool.dmn.dirty": "การเปลี่ยนแปลง DMN ยังไม่ได้บันทึก",
++  "nodes.tool.dmn.help": "บันทึกการเปลี่ยนแปลง DMN ก่อนเรียกใช้หรือเผยแพร่ ข้อมูลใช้ช่องป้อนข้อมูลมาตรฐาน",
++  "nodes.tool.dmn.replaceConfirm": "ละทิ้งการเปลี่ยนแปลง DMN ที่ยังไม่ได้บันทึกหรือไม่",
++  "nodes.tool.dmn.saved": "บันทึกในฉบับร่างเวิร์กโฟลว์แล้ว",
+   "nodes.tool.inputVars": "ตัวแปรอินพุต",
+   "nodes.tool.insertPlaceholder1": "พิมพ์หรือลงทะเบียน",
+   "nodes.tool.insertPlaceholder2": "แทรกตัวแปร",
+diff --git a/web/i18n/tr-TR/workflow.json b/web/i18n/tr-TR/workflow.json
+--- a/web/i18n/tr-TR/workflow.json
++++ b/web/i18n/tr-TR/workflow.json
+@@ -893,6 +893,11 @@
+   "nodes.tool.authorizationRequired": "Yetkilendirme gerekli",
+   "nodes.tool.dateRange.endPlaceholder": "Bitiş Tarihi",
+   "nodes.tool.dateRange.startPlaceholder": "Başlangıç Tarihi",
++  "nodes.tool.dmn.conflict": "İş akışı XML’i değişti. Taslağınızı dışa aktarın, ardından kaydetmeden önce sıfırlayın.",
++  "nodes.tool.dmn.dirty": "Kaydedilmemiş DMN değişiklikleri",
++  "nodes.tool.dmn.help": "Çalıştırmadan veya yayımlamadan önce DMN değişikliklerini kaydedin. Veriler yerel giriş alanlarını kullanır.",
++  "nodes.tool.dmn.replaceConfirm": "Kaydedilmemiş DMN değişiklikleri atılsın mı?",
++  "nodes.tool.dmn.saved": "İş akışı taslağına kaydedildi",
+   "nodes.tool.inputVars": "Giriş Değişkenleri",
+   "nodes.tool.insertPlaceholder1": "Yazın veya basın",
+   "nodes.tool.insertPlaceholder2": "değişken ekle",
+diff --git a/web/i18n/uk-UA/workflow.json b/web/i18n/uk-UA/workflow.json
+--- a/web/i18n/uk-UA/workflow.json
++++ b/web/i18n/uk-UA/workflow.json
+@@ -893,6 +893,11 @@
+   "nodes.tool.authorizationRequired": "Потрібна авторизація",
+   "nodes.tool.dateRange.endPlaceholder": "Дата завершення",
+   "nodes.tool.dateRange.startPlaceholder": "Дата початку",
++  "nodes.tool.dmn.conflict": "XML процесу змінився. Експортуйте чернетку та скиньте зміни перед збереженням.",
++  "nodes.tool.dmn.dirty": "Незбережені зміни DMN",
++  "nodes.tool.dmn.help": "Збережіть зміни DMN перед запуском або публікацією. Дані використовують стандартні поля введення.",
++  "nodes.tool.dmn.replaceConfirm": "Відкинути незбережені зміни DMN?",
++  "nodes.tool.dmn.saved": "Збережено в чернетці процесу",
+   "nodes.tool.inputVars": "Вхідні змінні",
+   "nodes.tool.insertPlaceholder1": "Введіть або натисніть",
+   "nodes.tool.insertPlaceholder2": "вставте змінну",
+diff --git a/web/i18n/vi-VN/workflow.json b/web/i18n/vi-VN/workflow.json
+--- a/web/i18n/vi-VN/workflow.json
++++ b/web/i18n/vi-VN/workflow.json
+@@ -893,6 +893,11 @@
+   "nodes.tool.authorizationRequired": "Yêu cầu ủy quyền",
+   "nodes.tool.dateRange.endPlaceholder": "Ngày kết thúc",
+   "nodes.tool.dateRange.startPlaceholder": "Ngày bắt đầu",
++  "nodes.tool.dmn.conflict": "XML của quy trình đã thay đổi. Hãy xuất bản nháp rồi đặt lại trước khi lưu.",
++  "nodes.tool.dmn.dirty": "Thay đổi DMN chưa được lưu",
++  "nodes.tool.dmn.help": "Lưu thay đổi DMN trước khi chạy hoặc xuất bản. Dữ liệu dùng các trường nhập gốc.",
++  "nodes.tool.dmn.replaceConfirm": "Hủy các thay đổi DMN chưa được lưu?",
++  "nodes.tool.dmn.saved": "Đã lưu vào bản nháp quy trình",
+   "nodes.tool.inputVars": "Biến đầu vào",
+   "nodes.tool.insertPlaceholder1": "Gõ hoặc nhấn",
+   "nodes.tool.insertPlaceholder2": "Chèn biến vào",
+diff --git a/web/i18n/zh-Hans/workflow.json b/web/i18n/zh-Hans/workflow.json
+--- a/web/i18n/zh-Hans/workflow.json
++++ b/web/i18n/zh-Hans/workflow.json
+@@ -893,6 +893,11 @@
+   "nodes.tool.authorizationRequired": "需要授权",
+   "nodes.tool.dateRange.endPlaceholder": "结束日期",
+   "nodes.tool.dateRange.startPlaceholder": "开始日期",
++  "nodes.tool.dmn.conflict": "工作流 XML 已更改。请先导出您的草稿，再重置后保存。",
++  "nodes.tool.dmn.dirty": "DMN 更改尚未保存",
++  "nodes.tool.dmn.help": "运行或发布前请保存 DMN 更改。事实数据使用原生输入字段。",
++  "nodes.tool.dmn.replaceConfirm": "放弃尚未保存的 DMN 更改？",
++  "nodes.tool.dmn.saved": "已保存到工作流草稿",
+   "nodes.tool.inputVars": "输入变量",
+   "nodes.tool.insertPlaceholder1": "键入",
+   "nodes.tool.insertPlaceholder2": "插入变量",
+diff --git a/web/i18n/zh-Hant/workflow.json b/web/i18n/zh-Hant/workflow.json
+--- a/web/i18n/zh-Hant/workflow.json
++++ b/web/i18n/zh-Hant/workflow.json
+@@ -893,6 +893,11 @@
+   "nodes.tool.authorizationRequired": "需要授權",
+   "nodes.tool.dateRange.endPlaceholder": "結束日期",
+   "nodes.tool.dateRange.startPlaceholder": "開始日期",
++  "nodes.tool.dmn.conflict": "工作流程 XML 已變更。請先匯出您的草稿，再重設後儲存。",
++  "nodes.tool.dmn.dirty": "DMN 變更尚未儲存",
++  "nodes.tool.dmn.help": "執行或發佈前請儲存 DMN 變更。事實資料使用原生輸入欄位。",
++  "nodes.tool.dmn.replaceConfirm": "捨棄尚未儲存的 DMN 變更？",
++  "nodes.tool.dmn.saved": "已儲存至工作流程草稿",
+   "nodes.tool.inputVars": "輸入變數",
+   "nodes.tool.insertPlaceholder1": "輸入或按壓",
+   "nodes.tool.insertPlaceholder2": "插入變數",
+diff --git a/web/package.json b/web/package.json
+--- a/web/package.json
++++ b/web/package.json
+@@ -73,6 +73,7 @@
+     "cron-parser": "catalog:",
+     "dayjs": "catalog:",
+     "decimal.js": "catalog:",
++    "dmn-js": "17.12.2",
+     "dompurify": "catalog:",
+     "echarts": "catalog:",
+     "echarts-for-react": "catalog:",

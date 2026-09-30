@@ -1,0 +1,16 @@
+.env
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+frontend/node_modules/
+frontend/dist/
+frontend/test-results/
+frontend/playwright-report/
+engine/target/
+dist/
+
+# Release assets are uploaded to GitHub Releases, not committed as source
+release-assets/
+*.private.pem
+*secret*env*

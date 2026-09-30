@@ -1,0 +1,27 @@
+version: 0.1.0
+type: plugin
+author: liangquanzhou
+name: dmn_decision
+label:
+  en_US: DMN Decision
+  zh_Hans: DMN 决策
+description:
+  en_US: Run FEEL DMN models on your private Apache KIE engine
+  zh_Hans: 在企业内部 Apache KIE 引擎上执行 FEEL DMN 决策
+icon: icon.svg
+resource:
+  memory: 268435456
+  permission: {}
+plugins:
+  tools:
+    - provider/dmn.yaml
+meta:
+  version: 0.0.1
+  arch: [amd64, arm64]
+  runner:
+    language: python
+    version: "3.12"
+    entrypoint: main
+  minimum_dify_version: 1.17.1
+created_at: 2026-09-30T07:30:00Z
+privacy: PRIVACY.md

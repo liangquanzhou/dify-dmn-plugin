@@ -1,0 +1,66 @@
+identity:
+  name: evaluate
+  author: liangquanzhou
+  label:
+    en_US: Evaluate DMN
+    zh_Hans: 执行 DMN
+description:
+  human:
+    en_US: Evaluate the configured DMN decision against an upstream JSON object
+    zh_Hans: 使用上游 JSON 对象执行配置的 DMN 决策
+  llm: Evaluate the saved DMN decision. Pass facts_json as a valid JSON object string matching the model inputs. Do not invent or modify facts.
+parameters:
+  - name: model_xml
+    type: string
+    required: true
+    form: form
+    label:
+      en_US: DMN XML snapshot
+      zh_Hans: DMN XML 快照
+    human_description:
+      en_US: Standard DMN XML, saved in this Tool node. Use the optional embedded editor or paste XML.
+      zh_Hans: 保存于当前 Tool 节点的标准 DMN XML，可使用内嵌编辑器或粘贴 XML。
+  - name: decision_id
+    type: string
+    required: true
+    form: form
+    label:
+      en_US: Decision ID
+      zh_Hans: 决策 ID
+    human_description:
+      en_US: XML decision id, not its display name
+      zh_Hans: XML 中 decision 元素的 id，不是显示名称
+  - name: facts_json
+    type: string
+    required: true
+    form: llm
+    label:
+      en_US: Facts JSON
+      zh_Hans: 业务输入 JSON
+    human_description:
+      en_US: Bind the JSON string output of a previous workflow node
+      zh_Hans: 绑定前序节点输出的 JSON 字符串
+    llm_description: A JSON object string containing the exact facts required by the selected model. For the eligibility example use {"age":25,"risk_score":30}.
+output_schema:
+  type: object
+  properties:
+    status:
+      type: string
+      description: matched or no_match
+    result:
+      type: object
+      description: Stable wrapper; value converts decimals and unsafe JS integers to exact strings
+    result_json:
+      type: string
+      description: Exact numeric JSON result, including scalar, list or null; use Decimal-aware parsing
+    matched_rule_ids:
+      type: array
+      items:
+        type: string
+      description: Rule identifiers reported by the engine, in engine event order
+    model_version:
+      type: string
+      description: SHA-256 of the exact UTF-8 XML snapshot evaluated
+extra:
+  python:
+    source: tools/evaluate.py
