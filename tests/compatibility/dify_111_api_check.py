@@ -12,7 +12,8 @@ from pydantic import ValidationError
 from core.tools.entities.tool_entities import ToolInvokeMessage, ToolProviderEntityWithPlugin
 
 OUTPUT_NAMES = {"result", "result_json", "matched", "outputs", "evaluations",
-                "matched_rule_ids", "status", "table_id", "table_version"}
+                "matched_rule_ids", "status", "table_id", "table_version", "selected_rule_ids", "condition_matched_rule_ids", "all_matches",
+                "unknown_rule_ids", "blocking_unknown_rule_ids", "decision_status", "model_sha256", "decision_result"}
 
 
 def run(evidence_path, declaration_path):
@@ -27,16 +28,17 @@ def run(evidence_path, declaration_path):
     tool = normalized.tools[0]
     assert tool.identity.name == "evaluate"
     assert {parameter.name: parameter.form.value for parameter in tool.parameters} == {
-        "table_json": "form", "values_json": "llm",
+        "table_json": "form", "values_json": "llm", "expected_sha256": "form",
     }
-    assert all(parameter.required and parameter.type.value == "string" for parameter in tool.parameters)
+    assert all(parameter.type.value == "string" for parameter in tool.parameters)
+    assert {p.name: p.required for p in tool.parameters} == {"table_json": True, "values_json": True, "expected_sha256": False}
     assert set(tool.output_schema["properties"]) == OUTPUT_NAMES
     assert tool.output_schema["properties"]["outputs"]["type"] == "array"
     assert tool.output_schema["properties"]["outputs"].get("items", {}) == {}
     variables = json_messages = errors = credentials = ends = 0
     success_ids = set(evidence["compatibility"]["success_sessions"])
     error_ids = set(evidence["compatibility"]["error_sessions"])
-    assert len(success_ids) == 6 and len(error_ids) == 18
+    assert len(success_ids) == 13 and len(error_ids) == 21
     captured = {}
     for event in evidence["events"]:
         if event.get("event") != "session":
@@ -68,7 +70,7 @@ def run(evidence_path, declaration_path):
             json_messages += 1
         else:
             raise AssertionError(message)
-    assert (variables, json_messages, errors, credentials, ends) == (54, 6, 18, 1, 25)
+    assert (variables, json_messages, errors, credentials, ends) == (221, 13, 21, 1, 35)
     assert all(set(outputs) == OUTPUT_NAMES for outputs in captured.values())
     raw_outputs = captured["invoke-raw-outputs"]["outputs"]
     assert raw_outputs == [{"nested": [None, {"text": "保留"}]}, "text", True, 1.25, [1, "x", False, None], None, None]
@@ -83,13 +85,13 @@ def run(evidence_path, declaration_path):
         pass
     else:
         raise AssertionError("Unexpected change to Dify 1.11.1 top-level null restriction")
-    print("PASS: real Dify 1.11.1 credential-free provider; form/llm string parameters; 9 output fields; 54 variable + 6 JSON messages; mixed/null array preservation; 18 explicit errors")
+    print("PASS: real Dify 1.11.1 credential-free provider; form/llm string parameters; 17 output fields; 221 variable + 13 JSON messages; mixed/null array preservation; 21 explicit errors")
     print("Scope: API declaration/message-model compatibility; frontend renders unconstrained outputs as Array[Unknown]")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--evidence", type=Path, default=Path("/tmp/dmn-v020-stdio-evidence.json"))
-    parser.add_argument("--declaration", type=Path, default=Path("/tmp/dmn-v020-daemon-declaration.json"))
+    parser.add_argument("--evidence", type=Path, default=Path("/tmp/dmn-v030-stdio-evidence.json"))
+    parser.add_argument("--declaration", type=Path, default=Path("/tmp/dmn-v030-daemon-declaration.json"))
     args = parser.parse_args()
     run(args.evidence, args.declaration)

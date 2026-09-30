@@ -4,7 +4,9 @@ import json
 import math
 from typing import Any
 
-from evaluator import TableError, evaluate_table
+from evaluator import TableError, evaluate_table, validate_table
+from decision_policy import unknown_policy, apply_policy
+from model_identity import model_identity
 
 MAX_SAFE_INTEGER = 2**53 - 1
 MAX_TABLE_BYTES = 512 * 1024
@@ -91,13 +93,27 @@ def exact_json(value: Any) -> str:
     return ''.join(chunks)
 
 
-def invoke_table(parameters: dict[str, Any]) -> dict[str, Any]:
-    raw_table = parameters.get('table_json')
+def prepare_model(raw_table: Any, expected_sha256: Any = None) -> tuple[dict[str, Any], str, str]:
     table = parse_object(raw_table, 'table_json', MAX_TABLE_BYTES)
-    values = parse_object(parameters.get('values_json'), 'values_json', MAX_VALUES_BYTES)
     if isinstance(table.get('rules'), list) and len(table['rules']) > MAX_RULES:
         _error('LIMIT_EXCEEDED', '$.table_json.rules', 'The table exceeds the rule-count limit')
-    result = evaluate_table(table, values)
+    validate_table(table)
+    policy = unknown_policy(table)
+    return table, policy, model_identity(table, expected_sha256)
+
+
+def compile_table_config(raw_table: Any) -> dict[str, str]:
+    """Compile two static Tool fields; preserve source text and keep the lock external."""
+    _, _, digest = prepare_model(raw_table)
+    return {'table_json': raw_table, 'expected_sha256': digest}
+
+
+def invoke_table(parameters: dict[str, Any]) -> dict[str, Any]:
+    raw_table = parameters.get('table_json')
+    table, policy, digest = prepare_model(raw_table, parameters.get('expected_sha256'))
+    values = parse_object(parameters.get('values_json'), 'values_json', MAX_VALUES_BYTES)
+    decision = apply_policy(table, evaluate_table(table, values), policy, digest)
+    result = decision['result']
     matched = result['matched']
     serialized = exact_json(result)
     if len(serialized.encode('utf-8')) > MAX_RESULT_BYTES:
@@ -109,7 +125,8 @@ def invoke_table(parameters: dict[str, Any]) -> dict[str, Any]:
         'outputs': [rule.get('output') for rule in matched],
         'evaluations': result['evaluations'],
         'matched_rule_ids': [rule['id'] for rule in matched],
-        'status': 'matched' if matched else 'no_match',
+        'status': decision['status'],
         'table_id': table['id'],
         'table_version': hashlib.sha256(raw_table.encode('utf-8')).hexdigest(),
+        **{key: value for key, value in decision.items() if key not in ('result', 'status')},
     }

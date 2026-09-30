@@ -34,3 +34,4 @@ Werkzeug==3.1.9
 yarl==1.25.1
 zope.event==6.2
 zope.interface==8.6
+rfc8785==0.1.4

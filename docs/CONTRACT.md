@@ -1,4 +1,6 @@
-# 单表 JSON 协议 v0.2.0
+# 单表 JSON 协议 v0.3.0
+
+v0.3.0 保留以下 v0.2.0 条件求值协议，新增选择层详见 [本地执行器对齐规范](LOCAL_ALIGNMENT.md)。表内可选 `unknown_policy` 缺省为 compatible，strict 会在影响选择的 UNKNOWN 存在时等待；因此下文 FIRST/COLLECT 选取 true 规则的基础规则须结合该策略阅读。新增模型 hash 与输出字段见 [迁移说明](MIGRATION-0.3.0.md)。
 
 本协议是自定义决策表条件协议，不是 DMN、FEEL 或 JavaScript。求值器没有 `eval`、脚本、通用 `not`、模板展开、外部引用、任意函数或 IO。示例全部为合成数据。
 

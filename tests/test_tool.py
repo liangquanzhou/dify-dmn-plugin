@@ -14,12 +14,13 @@ def invoke(model, values):
     })
 
 
-def test_tool_sends_all_nine_bindable_variables_and_one_json_message():
+def test_tool_sends_all_seventeen_bindable_variables_and_one_json_message():
     model = {'id': 'synthetic', 'hit_policy': 'FIRST', 'rules': [{'id': 'r', 'when': True, 'output': '中文\n"\\'}]}
     messages = list(invoke(model, {}))
-    assert len(messages) == 10
-    assert len([m for m in messages if m.type.value == 'variable']) == 9
+    assert len(messages) == 18
+    assert len([m for m in messages if m.type.value == 'variable']) == 17
     assert messages[-1].type.value == 'json'
+    assert set(messages[-1].message.json_object) == {'result', 'result_json', 'matched', 'outputs', 'evaluations', 'matched_rule_ids', 'status', 'table_id', 'table_version'}
     for msg in messages:
         frame = StreamOutputMessage(event=Event.SESSION, session_id='', data=SessionMessage(type=SessionMessage.Type.STREAM, data=msg.model_dump()).model_dump())
         assert len(frame.model_dump_json().encode()) + 2 < 4 * 1024 * 1024
@@ -50,3 +51,13 @@ def test_wire_guard_uses_actual_escaping_and_runs_before_yield(monkeypatch):
     with pytest.raises(TableInvocationError) as exc:
         next(invoke(model, {}))
     assert json.loads(str(exc.value))['code'] == 'LIMIT_EXCEEDED'
+
+
+def test_legacy_large_frame_remains_accepted_despite_new_diagnostics():
+    key = 'k' * 280
+    model = {'id': 'large-compatible', 'hit_policy': 'COLLECT', 'rules': [{'id': 'r'+str(i), 'when': {'eq': [key, 1]}} for i in range(1000)]}
+    messages = list(invoke(model, {key: 1}))
+    assert len(messages) == 18
+    # All 17 variable messages are present; the one JSON aggregation stays v0.2.0.
+    assert 'all_matches' not in messages[-1].message.json_object
+    assert [m.message.variable_name for m in messages[:-1]].count('all_matches') == 1

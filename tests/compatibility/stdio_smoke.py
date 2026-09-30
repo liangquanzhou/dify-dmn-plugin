@@ -20,17 +20,22 @@ import tempfile
 import threading
 import time
 import zipfile
+import rfc8785
 
 ROOT = Path(__file__).resolve().parents[2]
 OUTPUT_NAMES = {"result", "result_json", "matched", "outputs", "evaluations",
-                "matched_rule_ids", "status", "table_id", "table_version"}
+                "matched_rule_ids", "status", "table_id", "table_version", "selected_rule_ids", "condition_matched_rule_ids", "all_matches",
+                "unknown_rule_ids", "blocking_unknown_rule_ids", "decision_status", "model_sha256", "decision_result"}
 SUCCESS_SESSIONS = ["invoke-first", "invoke-collect", "invoke-no-match", "invoke-unknown",
-                    "invoke-raw-outputs", "invoke-literal-key"]
+                    "invoke-raw-outputs", "invoke-literal-key", "invoke-strict-fallback", "invoke-strict-first-known",
+                    "invoke-strict-collect", "invoke-compatible-fallback", "invoke-strict-no-match",
+                    "invoke-hash-a", "invoke-hash-b"]
 ERROR_SESSIONS = ["error-table-json", "error-values-json", "error-table-root", "error-values-root",
                   "error-duplicate-key", "error-nonfinite", "error-unsafe-integer", "error-value-type",
                   "error-operator", "error-expression", "error-policy", "error-duplicate-rule",
                   "error-table-size", "error-values-depth", "error-rule-count",
-                  "error-missing-table", "error-missing-values", "error-output-frame"]
+                  "error-missing-table", "error-missing-values", "error-output-frame", "error-unknown-policy",
+                  "error-hash-format", "error-hash-mismatch"]
 
 
 def dumps(value):
@@ -70,6 +75,20 @@ def cases():
     yield "invoke-literal-key", table(dotted), {"a.b": 7, "nested": {"value": 7}}, [dotted[0]], [trace("literal", True, ["a.b"]), trace("no-traversal", None, ["nested.value"])]
 
 
+    fallback = [{"id": "conditional", "when": {"eq": ["missing", 1]}}, {"id": "fallback", "when": True}]
+    fallback_trace = [trace("conditional", None, ["missing"]), trace("fallback", True, [])]
+    yield "invoke-strict-fallback", {**table(fallback, "FIRST"), "unknown_policy": "strict"}, {}, [], fallback_trace
+    known_first = list(reversed(fallback))
+    yield "invoke-strict-first-known", {**table(known_first, "FIRST"), "unknown_policy": "strict"}, {}, [known_first[0]], list(reversed(fallback_trace))
+    yield "invoke-strict-collect", {**table(fallback), "unknown_policy": "strict"}, {}, [], fallback_trace
+    yield "invoke-compatible-fallback", table(fallback, "FIRST"), {}, [fallback[1]], fallback_trace
+    no_match = [{"id": "false", "when": False}]
+    yield "invoke-strict-no-match", {**table(no_match), "unknown_policy": "strict"}, {}, [], [trace("false", False, [])]
+    hash_rules = [{"id": "hash", "when": True, "output": {"b": 1.0, "a": "中"}}]
+    for identity in ("invoke-hash-a", "invoke-hash-b"):
+        yield identity, table(hash_rules), {}, hash_rules, [trace("hash", True, [])]
+
+
 def error_cases():
     base = table([{"id": "one", "when": True}])
     good = {"table_json": dumps(base), "values_json": "{}"}
@@ -98,13 +117,17 @@ def error_cases():
     repeated = table([{"id": f"r{i}", "when": {"eq": [long_key, 1]}} for i in range(1000)])
     yield "error-output-frame", {"table_json": dumps(repeated), "values_json": dumps({long_key: 1})}, "LIMIT_EXCEEDED"
 
+    yield "error-unknown-policy", changed(table_json=dumps({**base, "unknown_policy": "skip"})), "INVALID_UNKNOWN_POLICY"
+    yield "error-hash-format", changed(expected_sha256="not-a-hash"), "INVALID_INPUT"
+    yield "error-hash-mismatch", changed(expected_sha256="0" * 64), "HASH_MISMATCH"
+
 
 @contextmanager
 def plugin_directory(root, package):
     if package is None:
         yield root
         return
-    with tempfile.TemporaryDirectory(prefix="dmn-v020-package-") as destination:
+    with tempfile.TemporaryDirectory(prefix="dmn-v030-package-") as destination:
         dest = Path(destination)
         with zipfile.ZipFile(package) as archive:
             for item in archive.infolist():
@@ -181,7 +204,7 @@ def run(output, root, package=None):
 
         try:
             manifest = receive(lambda item: item.get("type") == "plugin")
-            assert manifest["version"] == "0.2.0"
+            assert manifest["version"] == "0.3.0"
             assert manifest["author"] == "liangquanzhou" and manifest["name"] == "dmn_decision"
             assert manifest["meta"]["minimum_dify_version"] == "1.11.1"
             assert manifest["meta"]["runner"]["version"] == "3.12"
@@ -190,8 +213,14 @@ def run(output, root, package=None):
             for session_id, raw_table, values, matched, evaluations in cases():
                 # Deliberate whitespace verifies hashing of exact input text.
                 table_text = json.dumps(raw_table, ensure_ascii=False, indent=2) + "\n"
-                replies = request(session_id, "invoke_tool", {"table_json": table_text, "values_json": dumps(values)})
-                assert len(replies) == 11, (session_id, replies)
+                parameters = {"table_json": table_text, "values_json": dumps(values)}
+                if session_id.startswith("invoke-hash-"):
+                    parameters["expected_sha256"] = hashlib.sha256(rfc8785.dumps(raw_table)).hexdigest().upper()
+                    if session_id == "invoke-hash-b":
+                        table_text = json.dumps(raw_table, sort_keys=True, ensure_ascii=True, separators=(",", ":"))
+                        parameters["table_json"] = table_text
+                replies = request(session_id, "invoke_tool", parameters)
+                assert len(replies) == 19, (session_id, replies)
                 assert replies[-1] == {"type": "end", "data": {}}
                 assert all(reply["type"] == "stream" for reply in replies[:-1]), (session_id, replies)
                 messages = [reply["data"] for reply in replies[:-1]]
@@ -205,10 +234,34 @@ def run(output, root, package=None):
                 assert variables["outputs"] == [rule.get("output") for rule in matched]
                 assert variables["evaluations"] == evaluations
                 assert variables["matched_rule_ids"] == [rule["id"] for rule in matched]
-                assert variables["status"] == ("matched" if matched else "no_match")
+                true_ids = [e["rule_id"] for e in evaluations if e["condition"] is True]
+                unknown_ids = [e["rule_id"] for e in evaluations if e["condition"] is None]
+                strict = raw_table.get("unknown_policy") == "strict"
+                if strict:
+                    first_true = next((i for i, e in enumerate(evaluations) if e["condition"] is True), len(evaluations))
+                    blockers = [e["rule_id"] for i, e in enumerate(evaluations) if e["condition"] is None and (raw_table["hit_policy"] == "COLLECT" or i < first_true)]
+                else:
+                    blockers = unknown_ids if not true_ids else []
+                expected_status = "waiting_input" if strict and blockers else "matched" if matched else "no_match"
+                expected_decision_status = "waiting_input" if blockers else "matched" if matched else "no_match"
+                assert variables["status"] == expected_status
+                assert variables["selected_rule_ids"] == [r["id"] for r in matched]
+                assert variables["condition_matched_rule_ids"] == true_ids
+                assert variables["all_matches"] == [r for r in raw_table["rules"] if r["id"] in true_ids]
+                assert variables["unknown_rule_ids"] == unknown_ids
+                assert variables["blocking_unknown_rule_ids"] == blockers
+                assert variables["decision_status"] == expected_decision_status
+                canonical_digest = hashlib.sha256(rfc8785.dumps(raw_table)).hexdigest()
+                assert variables["model_sha256"] == canonical_digest
+                assert variables["decision_result"] == {
+                    "schema_version": "0.3.0", "unknown_policy": raw_table.get("unknown_policy", "compatible"),
+                    "decision_status": expected_decision_status, "selected_rule_ids": [r["id"] for r in matched],
+                    "condition_matched_rule_ids": true_ids, "unknown_rule_ids": unknown_ids,
+                    "blocking_unknown_rule_ids": blockers, "model_sha256": canonical_digest,
+                }
                 assert variables["table_id"] == raw_table["id"]
                 assert variables["table_version"] == hashlib.sha256(table_text.encode("utf-8")).hexdigest()
-                assert messages[-1]["type"] == "json" and messages[-1]["message"]["json_object"] == variables
+                assert messages[-1]["type"] == "json" and messages[-1]["message"]["json_object"] == {name: variables[name] for name in ("result", "result_json", "matched", "outputs", "evaluations", "matched_rule_ids", "status", "table_id", "table_version")}
             for session_id, parameters, expected_code in error_cases():
                 replies = request(session_id, "invoke_tool", parameters)
                 assert len(replies) == 2 and replies[0]["type"] == "error" and replies[-1]["type"] == "end", (session_id, replies)
@@ -218,7 +271,7 @@ def run(output, root, package=None):
                 assert "PRIVATE-VALUE-FOR-ERROR" not in dumps(error), (session_id, error)
             assert max(wire_line_sizes) <= 4 * 1024 * 1024, "SDK emitted an unsafe daemon frame"
             evidence = {"manifest": manifest, "events": captured,
-                        "compatibility": {"plugin_version": "0.2.0", "sdk_version": sdk_version,
+                        "compatibility": {"plugin_version": "0.3.0", "sdk_version": sdk_version,
                                           "python_version": sys.version.split()[0],
                                           "success_sessions": SUCCESS_SESSIONS, "error_sessions": ERROR_SESSIONS,
                                           "credential_session": "credential-empty",
@@ -226,7 +279,7 @@ def run(output, root, package=None):
                                           "package_sha256": hashlib.sha256(package.read_bytes()).hexdigest() if package else None}}
             output.parent.mkdir(parents=True, exist_ok=True)
             output.write_text(dumps(evidence) + "\n")
-            print("PASS: real SDK stdio bootstrap; no-credential validation; 6 successful calls; 18 explicit errors; 54 variables; 6 JSON messages; 25 session ends")
+            print("PASS: real SDK stdio bootstrap; no-credential validation; 13 successful calls; 21 explicit errors; 221 variables; 13 JSON messages; 35 session ends")
             print(f"Wire evidence: {output}")
             if package:
                 print(f"Exact tested package SHA-256: {evidence['compatibility']['package_sha256']}")
@@ -243,7 +296,7 @@ def run(output, root, package=None):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--output", type=Path, default=Path("/tmp/dmn-v020-stdio-evidence.json"))
+    parser.add_argument("--output", type=Path, default=Path("/tmp/dmn-v030-stdio-evidence.json"))
     parser.add_argument("--plugin-root", type=Path, default=ROOT / "plugin")
     parser.add_argument("--package", type=Path, help="Run files extracted from this exact .difypkg")
     args = parser.parse_args()

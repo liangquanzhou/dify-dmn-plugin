@@ -13,6 +13,8 @@ from io_contract import invoke_table
 # Official Dify 1.11.1's daemon defaults to a 5 MiB output scanner. Check the
 # real SDK framing at 4 MiB, before emitting anything; never yield partial success.
 MAX_WIRE_BYTES = 4 * 1024 * 1024
+LEGACY_OUTPUT_NAMES = ("result", "result_json", "matched", "outputs", "evaluations",
+                       "matched_rule_ids", "status", "table_id", "table_version")
 
 
 class TableInvocationError(ValueError):
@@ -34,7 +36,9 @@ class EvaluateDMNTool(Tool):
         try:
             outputs = invoke_table(tool_parameters)
             messages = [self.create_variable_message(name, value) for name, value in outputs.items()]
-            messages.append(self.create_json_message(outputs))
+            # Retain the v0.2.0 aggregate JSON shape and size. New diagnostics
+            # are independent bindable variables, including decision_result.
+            messages.append(self.create_json_message({name: outputs[name] for name in LEGACY_OUTPUT_NAMES}))
             check_wire_size(messages, self.session.session_id if self.session else None)
         except TableError as exc:
             # Explicit Tool failure: never turn invalid input into a no-match result.

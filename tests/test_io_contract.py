@@ -20,7 +20,7 @@ def params(model=None, values=None):
 def test_output_preserves_raw_data_and_exposes_bindings():
     model = table(output={'never_execute': {'ref': 'secret'}, 'nested': [1, None, False]}, **{'载荷': 'synthetic payload'})
     result = invoke_table(params(model))
-    assert set(result) == {'result', 'result_json', 'matched', 'outputs', 'evaluations', 'matched_rule_ids', 'status', 'table_id', 'table_version'}
+    assert {'result', 'result_json', 'matched', 'outputs', 'evaluations', 'matched_rule_ids', 'status', 'table_id', 'table_version'} <= set(result)
     assert result['matched'] == model['rules']
     assert result['outputs'] == [model['rules'][0]['output']]
     assert result['result'] == json.loads(result['result_json'])

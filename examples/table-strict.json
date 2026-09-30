@@ -1,0 +1,39 @@
+{
+  "id": "synthetic_shipping",
+  "hit_policy": "FIRST",
+  "rules": [
+    {
+      "id": "priority",
+      "when": {
+        "all": [
+          {
+            "eq": [
+              "customer.level",
+              "gold"
+            ]
+          },
+          {
+            "gte": [
+              "item_count",
+              3
+            ]
+          }
+        ]
+      },
+      "output": {
+        "route": "priority"
+      },
+      "载荷": {
+        "note": "合成示例，无真实业务规则"
+      }
+    },
+    {
+      "id": "standard",
+      "when": true,
+      "output": {
+        "route": "standard"
+      }
+    }
+  ],
+  "unknown_policy": "strict"
+}

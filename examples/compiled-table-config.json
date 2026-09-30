@@ -1,0 +1,4 @@
+{
+  "table_json": "{\n  \"id\": \"synthetic_shipping\",\n  \"hit_policy\": \"FIRST\",\n  \"rules\": [\n    {\n      \"id\": \"priority\",\n      \"when\": {\n        \"all\": [\n          {\n            \"eq\": [\n              \"customer.level\",\n              \"gold\"\n            ]\n          },\n          {\n            \"gte\": [\n              \"item_count\",\n              3\n            ]\n          }\n        ]\n      },\n      \"output\": {\n        \"route\": \"priority\"\n      },\n      \"载荷\": {\n        \"note\": \"合成示例，无真实业务规则\"\n      }\n    },\n    {\n      \"id\": \"standard\",\n      \"when\": true,\n      \"output\": {\n        \"route\": \"standard\"\n      }\n    }\n  ],\n  \"unknown_policy\": \"strict\"\n}\n",
+  "expected_sha256": "876c9bbc82ee57e9a6c1fed5e944a31cea4c4eaef1f8309c09a4cf0d667443fa"
+}

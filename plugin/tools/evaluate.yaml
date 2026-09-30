@@ -18,8 +18,8 @@ parameters:
       en_US: Decision table JSON
       zh_Hans: 决策表 JSON
     human_description:
-      en_US: One table object with id, hit_policy FIRST or COLLECT, and rules. This plugin does not accept DMN XML or a whole plan.
-      zh_Hans: 一张包含 id、hit_policy（FIRST 或 COLLECT）及 rules 的表，不接收 DMN XML 或整份方案。
+      en_US: One table with id, hit_policy FIRST or COLLECT, rules, and optional unknown_policy compatible or strict. No DMN XML or whole plan.
+      zh_Hans: 一张含 id、hit_policy（FIRST 或 COLLECT）、rules 的表；可选 unknown_policy 为 compatible 或 strict，不接收 XML 或整份方案。
   - name: values_json
     type: string
     required: true
@@ -31,6 +31,16 @@ parameters:
       en_US: Bind an upstream JSON object string. Keys are exact flat keys; dots do not select nested fields.
       zh_Hans: 绑定上游 JSON 对象字符串；变量名按扁平键精确匹配，点号不解析嵌套。
     llm_description: A JSON object string containing known input values. Preserve exact keys and types. Missing and null values are unknown, not false. Do not invent facts.
+  - name: expected_sha256
+    type: string
+    required: false
+    form: form
+    label:
+      en_US: Expected model SHA-256 (optional)
+      zh_Hans: 预期模型 SHA-256（可选）
+    human_description:
+      en_US: Optional RFC 8785 canonical model digest. Empty disables the lock; a mismatch fails before evaluation. Keep this lock outside table_json.
+      zh_Hans: 可选 RFC 8785 规范化模型摘要；留空不锁定，错配在求值前报错。不要把版本锁写入 table_json。
 output_schema:
   type: object
   properties:
@@ -60,12 +70,45 @@ output_schema:
         type: string
     status:
       type: string
-      description: matched or no_match; errors fail the Tool instead
+      description: Legacy selection status; strict waiting adds waiting_input. Prefer decision_status; errors fail the Tool instead
     table_id:
       type: string
     table_version:
       type: string
       description: SHA-256 of the exact UTF-8 table_json text
+    selected_rule_ids:
+      type: array
+      items:
+        type: string
+      description: Actually selected rule ids; empty while strict policy waits
+    condition_matched_rule_ids:
+      type: array
+      items:
+        type: string
+      description: All rules whose condition is true, including unselected rules
+    all_matches:
+      type: array
+      items:
+        type: object
+      description: Original raw rules for all true conditions, in table order
+    unknown_rule_ids:
+      type: array
+      items:
+        type: string
+    blocking_unknown_rule_ids:
+      type: array
+      items:
+        type: string
+      description: Unknown rules causing this invocation to wait under the active policy
+    decision_status:
+      type: string
+      description: matched, no_match or waiting_input; technical errors fail the Tool
+    model_sha256:
+      type: string
+      description: SHA-256 of RFC 8785 canonical full table content, including an explicit unknown_policy
+    decision_result:
+      type: object
+      description: Versioned v0.3.0 outcome metadata, policy, selected/all-true/unknown ids and canonical digest
 extra:
   python:
     source: tools/evaluate.py

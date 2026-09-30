@@ -1,4 +1,4 @@
-# Dify 单张 JSON 决策表插件 v0.2.0
+# Dify 单张 JSON 决策表插件 v0.3.0
 
 一个 Dify Tool 节点执行一张自定义 JSON 决策表。全部求值在插件内部完成，**不需要引擎地址、访问令牌、Java 服务或 XML**。适配目标是 Dify **1.11.1**。
 
@@ -7,13 +7,25 @@
 ## 安装
 
 1. 在测试 Workspace 打开 **Plugins → Install from GitHub**，输入仓库地址：`https://github.com/liangquanzhou/dify-dmn-plugin`
-2. 选择 **v0.2.0**，再选择该 Release 中唯一的 `.difypkg` 文件：`liangquanzhou-dmn_decision-0.2.0-unsigned.difypkg`，按界面提示安装。不要选旧版或源码 ZIP
+2. 选择 **v0.3.0**，再选择该 Release 中唯一的 `.difypkg` 文件：`liangquanzhou-dmn_decision-0.3.0-unsigned.difypkg`，按界面提示安装。不要选旧版或源码 ZIP
 3. 插件列表应显示“JSON 决策表”，无需填写引擎地址或提供方凭据
-4. 工作流添加“执行 JSON 决策表”Tool。参数只有 `table_json`（静态 JSON 表）和 `values_json`（绑定上游 JSON 字符串）
+4. 工作流添加“执行 JSON 决策表”Tool。必填参数仍为 `table_json`（静态 JSON 表）和 `values_json`（绑定上游 JSON 字符串）；另有可选 `expected_sha256` 内容版本锁
 
 本 Release 的包未签名。如果公司策略拒绝未签名插件，请交管理员审查并按公司批准的签名/分发流程处理，保持签名校验开启。只有公司 Dify 实际提供本地文件安装入口时，管理员才可将本地安装作为备用；没有该入口无需寻找。
 
-插件技术身份仍为 `liangquanzhou/dmn_decision` / provider `dmn` / tool `evaluate`。这用于有意识地升级现有插件，并不表示 v0.2.0 支持标准 DMN。升级旧 0.1.x 是破坏性变更，先备份并新建测试节点，不能让生产旧 XML 工作流直接使用新版。
+插件技术身份仍为 `liangquanzhou/dmn_decision` / provider `dmn` / tool `evaluate`。这用于有意识地升级现有插件，并不表示 v0.3.0 支持标准 DMN。升级旧 0.1.x 是破坏性变更，先备份并新建测试节点，不能让生产旧 XML 工作流直接使用新版。
+
+## v0.3.0 新增能力
+
+旧表无需重写：未设置 `unknown_policy` 时继续 v0.2.0 的选择行为。需要阻止“缺输入却落入兜底”时，在**表 JSON 内**加 `"unknown_policy":"strict"`：FIRST 遇到第一条 true 之前的未知会等待，第一条 true 之后的未知不阻塞；COLLECT 遇到任意未知会等待。
+
+新工作流用 `decision_status` 区分 `matched`、`no_match`、`waiting_input`。未知可能来自缺值、无效金额或不完整约束，不代表一定只缺一个变量。原 `matched`/`matched_rule_ids` 继续表示最终选中；新 `all_matches`/`condition_matched_rule_ids` 表示全部条件为 true 的规则，不能把它们当作等待时可执行的结果。
+
+新增 `model_sha256` 使用完整表的 RFC8785 规范化内容计算 SHA-256；空白或键顺序变化不改该指纹，规则数组顺序变化会改。`expected_sha256` 可选且独立于表，用于执行前检查版本。`table_version` 仍为原始文本 SHA-256。编译时可以运行 `python scripts/compile_table.py examples/table.json --output /tmp/table-node-config.json`，自动生成带版本锁的静态配置。
+
+17 个独立输出变量可绑定；末尾标准 JSON 消息保留旧 9 字段，新增决策信息请绑定 `decision_result` 或相应独立变量。默认 compatible 没有 true 但有未知时，旧 `status=no_match` 保留兼容，新的 `decision_status=waiting_input`；strict 等待时两个状态都为 waiting_input。新代码推荐只依赖 decision_status。
+
+详见 [0.3.0 迁移](docs/MIGRATION-0.3.0.md) 和 [本地执行器对齐清单](docs/LOCAL_ALIGNMENT.md)。本地 `phases/steps/rules/when/output` 结构不需重构，但本地执行器与编译器需要按同一规范增加策略、结果与指纹，并通过随附合成向量；本交付没有修改或验证公司本地实现。
 
 ## 五分钟合成测试
 
@@ -67,9 +79,9 @@ Dify 1.11.1 对任意类型混合 `outputs` 数组可能显示 `Array[Unknown]`�
 若管理员已持有批准的签名密钥，可用官方 CLI：
 
 ```bash
-/path/to/dify signature sign ./liangquanzhou-dmn_decision-0.2.0-unsigned.difypkg \
+/path/to/dify signature sign ./liangquanzhou-dmn_decision-0.3.0-unsigned.difypkg \
   -p /secure/path/company.private.pem
-/path/to/dify signature verify ./liangquanzhou-dmn_decision-0.2.0-unsigned.signed.difypkg \
+/path/to/dify signature verify ./liangquanzhou-dmn_decision-0.3.0-unsigned.signed.difypkg \
   -p /approved/path/company.public.pem
 ```
 

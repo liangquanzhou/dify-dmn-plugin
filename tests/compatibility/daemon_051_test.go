@@ -20,7 +20,8 @@ import (
 
 var outputNames = map[string]bool{"result": true, "result_json": true, "matched": true,
 	"outputs": true, "evaluations": true, "matched_rule_ids": true, "status": true,
-	"table_id": true, "table_version": true}
+	"table_id": true, "table_version": true, "selected_rule_ids": true, "condition_matched_rule_ids": true, "all_matches": true,
+ "unknown_rule_ids": true, "blocking_unknown_rule_ids": true, "decision_status": true, "model_sha256": true, "decision_result": true}
 
 func read(t *testing.T, path string) []byte {
 	t.Helper()
@@ -33,7 +34,7 @@ func read(t *testing.T, path string) []byte {
 
 func checkManifest(t *testing.T, manifest pe.PluginDeclaration) {
 	t.Helper()
-	if manifest.Version != "0.2.0" || manifest.Author != "liangquanzhou" || manifest.Name != "dmn_decision" {
+	if manifest.Version != "0.3.0" || manifest.Author != "liangquanzhou" || manifest.Name != "dmn_decision" {
 		t.Fatal("wrong release identity", manifest)
 	}
 	if manifest.Meta.MinimumDifyVersion == nil || *manifest.Meta.MinimumDifyVersion != "1.11.1" || manifest.Meta.Runner.Version != "3.12" {
@@ -53,17 +54,17 @@ func checkProvider(t *testing.T, provider pe.ToolProviderDeclaration) {
 		t.Fatal("provider must be credential-free with one evaluate Tool", provider)
 	}
 	tool := provider.Tools[0]
-	if tool.Identity.Name != "evaluate" || tool.Identity.Author != "liangquanzhou" || len(tool.Parameters) != 2 {
+	if tool.Identity.Name != "evaluate" || tool.Identity.Author != "liangquanzhou" || len(tool.Parameters) != 3 {
 		t.Fatal("tool identity/parameters changed", tool)
 	}
 	forms := map[string]pe.ToolParameterForm{}
 	for _, parameter := range tool.Parameters {
 		forms[parameter.Name] = parameter.Form
-		if !parameter.Required || parameter.Type != pe.TOOL_PARAMETER_TYPE_STRING {
+		if parameter.Required != (parameter.Name != "expected_sha256") || parameter.Type != pe.TOOL_PARAMETER_TYPE_STRING {
 			t.Fatal(parameter)
 		}
 	}
-	if forms["table_json"] != pe.TOOL_PARAMETER_FORM_FORM || forms["values_json"] != pe.TOOL_PARAMETER_FORM_LLM {
+	if forms["table_json"] != pe.TOOL_PARAMETER_FORM_FORM || forms["values_json"] != pe.TOOL_PARAMETER_FORM_LLM || forms["expected_sha256"] != pe.TOOL_PARAMETER_FORM_FORM {
 		t.Fatal(forms)
 	}
 	properties, ok := tool.OutputSchema["properties"].(map[string]interface{})
@@ -193,7 +194,7 @@ func loadEvidence(t *testing.T) wireEvidence {
 	if err := json.Unmarshal(read(t, path), &evidence); err != nil {
 		t.Fatal(err)
 	}
-	if evidence.Compatibility.PluginVersion != "0.2.0" || evidence.Compatibility.SDKVersion != "0.10.2" {
+	if evidence.Compatibility.PluginVersion != "0.3.0" || evidence.Compatibility.SDKVersion != "0.10.2" {
 		t.Fatal("wrong evidence runtime")
 	}
 	return evidence
@@ -214,7 +215,7 @@ func TestDMNSDKStdioWire(t *testing.T) {
 	for _, id := range evidence.Compatibility.ErrorSessions {
 		failed[id] = true
 	}
-	if len(successful) != 6 || len(failed) != 18 || evidence.Compatibility.CredentialSession != "credential-empty" {
+	if len(successful) != 13 || len(failed) != 21 || evidence.Compatibility.CredentialSession != "credential-empty" {
 		t.Fatal("test case count changed")
 	}
 	variableCount, jsonCount, credentialOK, errorCount, ends := 0, 0, 0, 0, 0
@@ -290,7 +291,7 @@ func TestDMNSDKStdioWire(t *testing.T) {
 		}
 	}
 	for id := range successful {
-		if len(seenVariables[id]) != 9 || seenJSON[id] != 1 || seenEnds[id] != 1 {
+		if len(seenVariables[id]) != 17 || seenJSON[id] != 1 || seenEnds[id] != 1 {
 			t.Fatal("incomplete successful session", id)
 		}
 	}
@@ -299,7 +300,7 @@ func TestDMNSDKStdioWire(t *testing.T) {
 			t.Fatal("incomplete failed session", id)
 		}
 	}
-	if seenEnds["credential-empty"] != 1 || variableCount != 54 || jsonCount != 6 || credentialOK != 1 || errorCount != 18 || ends != 25 {
+	if seenEnds["credential-empty"] != 1 || variableCount != 221 || jsonCount != 13 || credentialOK != 1 || errorCount != 21 || ends != 35 {
 		t.Fatalf("unexpected counts: variables=%d json=%d credentials=%d errors=%d ends=%d", variableCount, jsonCount, credentialOK, errorCount, ends)
 	}
 }

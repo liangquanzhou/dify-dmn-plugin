@@ -1,5 +1,5 @@
-PASS: real SDK stdio bootstrap; no-credential validation; 6 successful calls; 18 explicit errors; 54 variables; 6 JSON messages; 25 session ends
-Wire evidence: /tmp/dmn-v020-final-stdio-evidence.json
-Exact tested package SHA-256: 154c415b5d66ca87bcc284bd2eeb9a8fed42ae7b9aeb615a0cb5733a92f18856
-PASS: real Dify 1.11.1 credential-free provider; form/llm string parameters; 9 output fields; 54 variable + 6 JSON messages; mixed/null array preservation; 18 explicit errors
+PASS: real SDK stdio bootstrap; no-credential validation; 13 successful calls; 21 explicit errors; 221 variables; 13 JSON messages; 35 session ends
+Wire evidence: /tmp/dmn-v030-final-stdio-evidence.json
+Exact tested package SHA-256: 30dde6e77640789d8dcb9fe5055a3b07309e18bfaf7a262631703f420e8750f2
+PASS: real Dify 1.11.1 credential-free provider; form/llm string parameters; 17 output fields; 221 variable + 13 JSON messages; mixed/null array preservation; 21 explicit errors
 Scope: API declaration/message-model compatibility; frontend renders unconstrained outputs as Array[Unknown]
