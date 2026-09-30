@@ -1,37 +1,19 @@
-# Dify DMN Decision Tool
+# Single JSON Decision Table for Dify
 
-A Dify Tool plugin backed by an included, privately deployed Apache KIE DMN engine, plus an optional Dify-specific dmn-js editor integration.
+**v0.2.0: one Tool node evaluates one custom JSON table entirely inside the plugin.** No external engine, credentials or XML. Target: Dify **1.11.1**.
 
-## Read before installing
+[中文安装和使用指南](README.zh-CN.md) · [Condition contract](docs/CONTRACT.md) · [Breaking migration](docs/MIGRATION-0.2.0.md) · [Validation scope](docs/VALIDATION.md)
 
-**Installing the `.difypkg` from GitHub installs the Python Tool only. It does not install the engine or change the Dify frontend.**
+Configure `table_json` as a static JSON string and bind upstream `values_json`. The supported hit policies are `FIRST` and `COLLECT`. Every rule is evaluated; missing/unknown is distinct from false. Rule outputs are data, never code. The package retains the previous plugin/provider identity for a deliberate breaking upgrade; the manifest's `dmn_decision` name does not mean v0.2.0 implements DMN or FEEL.
 
-1. An operator must deploy the included Java 21 / Apache KIE 10.2.0 service from `engine/` on a private network reachable by Dify's plugin-daemon.
-2. Configure the Tool provider's `engine_url` (engine HTTP(S) origin) and `api_token` (the matching bearer token). Saving credentials checks `/health`.
-3. You can then execute a standard `.dmn` XML snapshot and bind upstream JSON through `facts_json` using the standard Tool configuration.
-4. To edit DMN visually inside the Tool panel, a developer must separately apply `frontend/` to an exact supported Dify baseline (1.11.1 or 1.17.1) and build/deploy a customized Dify Web image.
+The `.difypkg` installs a standard Tool only. It does **not** add a visual table editor. The old v0.1.x XML/KIE frontend patches are incompatible with this version and must not be applied.
 
-Without a reachable engine, this plugin cannot run a decision. No public/free hosted engine is provided. The standard plugin package alone cannot add the visual editor.
+## Source layout
 
-## Compatibility
+- `plugin/`: pure Python evaluator, bounded JSON boundary, standard Dify provider/tool
+- `examples/`: synthetic single-table fixtures
+- `tests/`: evaluator, boundary and actual SDK/legacy Dify protocol checks
+- `docs/`: condition contract, migration, installation/verification evidence
+- `scripts/`: verification and reproducible packaging
 
-Plugin v0.1.1 targets Dify 1.11.1 and keeps the standard Tool runtime. Its older-daemon compatibility checks are recorded in [the 1.11.1 report](docs/COMPATIBILITY-1.11.1.md). Version-specific frontend adapters keep the different panel hooks and translation APIs separate. Do not apply a patch for another Dify version.
-
-## Install from GitHub
-
-After an owner-matched release is published: Plugins → Install Plugin → From GitHub → paste this repository's URL → select `v0.1.1` and its `.difypkg` asset.
-
-The package is **unsigned**. A corporate Dify installation enforcing signature verification will require administrator review/signing and a trusted public key. GitHub installation does not bypass signature or workspace installation policy. Do not disable verification to make this package install.
-
-Use a public repository for Dify's documented GitHub-install flow. A private repository is not a supported assumption for the standard anonymous release-download flow; use your administrator-approved local package process when source must remain private.
-
-## Documentation
-
-- [中文安装与验收说明](README.zh-CN.md)
-- [Engine deployment and security](docs/engine.md)
-- [Version-gated frontend patch](frontend/README.md)
-- [Verification record and limitations](docs/VALIDATION.md)
-- [GitHub release checklist](docs/GITHUB_RELEASE.md)
-- [Privacy](plugin/PRIVACY.md)
-
-This is an integration starter, not a production-certified deployment. The tests include a real KIE service and real dmn-js DOM behavior; complete Dify deployment/browser/persistence validation and Docker image execution remain deployment responsibilities. FEEL arithmetic follows Decimal128/34-significant-digit semantics.
+No engine service, Java/Maven, container or frontend build is required for this Tool. The unsigned package requires the company's normal review/signature policy. Never disable signature verification to install it.

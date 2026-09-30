@@ -2,65 +2,70 @@ identity:
   name: evaluate
   author: liangquanzhou
   label:
-    en_US: Evaluate DMN
-    zh_Hans: 执行 DMN
+    en_US: Evaluate JSON Table
+    zh_Hans: 执行 JSON 决策表
 description:
   human:
-    en_US: Evaluate the configured DMN decision against an upstream JSON object
-    zh_Hans: 使用上游 JSON 对象执行配置的 DMN 决策
-  llm: Evaluate the saved DMN decision. Pass facts_json as a valid JSON object string matching the model inputs. Do not invent or modify facts.
+    en_US: Evaluate a single saved JSON table against a flat values object, without an external service
+    zh_Hans: 使用扁平变量对象执行一张 JSON 决策表，无需外部服务
+  llm: Evaluate the configured JSON decision table. Supply only values_json as a JSON object string containing exact known inputs. Do not invent missing values or modify the configured table.
 parameters:
-  - name: model_xml
+  - name: table_json
     type: string
     required: true
     form: form
     label:
-      en_US: DMN XML snapshot
-      zh_Hans: DMN XML 快照
+      en_US: Decision table JSON
+      zh_Hans: 决策表 JSON
     human_description:
-      en_US: Standard DMN XML, saved in this Tool node. Use the optional embedded editor or paste XML.
-      zh_Hans: 保存于当前 Tool 节点的标准 DMN XML，可使用内嵌编辑器或粘贴 XML。
-  - name: decision_id
-    type: string
-    required: true
-    form: form
-    label:
-      en_US: Decision ID
-      zh_Hans: 决策 ID
-    human_description:
-      en_US: XML decision id, not its display name
-      zh_Hans: XML 中 decision 元素的 id，不是显示名称
-  - name: facts_json
+      en_US: One table object with id, hit_policy FIRST or COLLECT, and rules. This plugin does not accept DMN XML or a whole plan.
+      zh_Hans: 一张包含 id、hit_policy（FIRST 或 COLLECT）及 rules 的表，不接收 DMN XML 或整份方案。
+  - name: values_json
     type: string
     required: true
     form: llm
     label:
-      en_US: Facts JSON
-      zh_Hans: 业务输入 JSON
+      en_US: Input values JSON
+      zh_Hans: 输入变量 JSON
     human_description:
-      en_US: Bind the JSON string output of a previous workflow node
-      zh_Hans: 绑定前序节点输出的 JSON 字符串
-    llm_description: A JSON object string containing the exact facts required by the selected model. For the eligibility example use {"age":25,"risk_score":30}.
+      en_US: Bind an upstream JSON object string. Keys are exact flat keys; dots do not select nested fields.
+      zh_Hans: 绑定上游 JSON 对象字符串；变量名按扁平键精确匹配，点号不解析嵌套。
+    llm_description: A JSON object string containing known input values. Preserve exact keys and types. Missing and null values are unknown, not false. Do not invent facts.
 output_schema:
   type: object
   properties:
-    status:
-      type: string
-      description: matched or no_match
     result:
       type: object
-      description: Stable wrapper; value converts decimals and unsafe JS integers to exact strings
+      description: Original decision contract with matched raw rules and all evaluations
     result_json:
       type: string
-      description: Exact numeric JSON result, including scalar, list or null; use Decimal-aware parsing
+      description: JSON serialization of result; no rule output is executed or merged
+    matched:
+      type: array
+      items:
+        type: object
+      description: Selected original rules in table order
+    outputs:
+      type: array
+      items: {}
+      description: Unmodified output from each matched rule, in the same order; null when absent
+    evaluations:
+      type: array
+      items:
+        type: object
+      description: Evaluation and variable evidence for every rule, including unselected rules
     matched_rule_ids:
       type: array
       items:
         type: string
-      description: Rule identifiers reported by the engine, in engine event order
-    model_version:
+    status:
       type: string
-      description: SHA-256 of the exact UTF-8 XML snapshot evaluated
+      description: matched or no_match; errors fail the Tool instead
+    table_id:
+      type: string
+    table_version:
+      type: string
+      description: SHA-256 of the exact UTF-8 table_json text
 extra:
   python:
     source: tools/evaluate.py

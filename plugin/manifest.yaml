@@ -1,13 +1,13 @@
-version: 0.1.1
+version: 0.2.0
 type: plugin
 author: liangquanzhou
 name: dmn_decision
 label:
-  en_US: DMN Decision
-  zh_Hans: DMN 决策
+  en_US: JSON Decision Table
+  zh_Hans: JSON 决策表
 description:
-  en_US: Run FEEL DMN models on your private Apache KIE engine
-  zh_Hans: 在企业内部 Apache KIE 引擎上执行 FEEL DMN 决策
+  en_US: Evaluate one custom JSON decision table inside the plugin, without an external service
+  zh_Hans: 在插件内部执行一张自定义 JSON 决策表，无需外部服务
 icon: icon.svg
 resource:
   memory: 268435456

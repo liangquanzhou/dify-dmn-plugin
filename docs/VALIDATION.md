@@ -1,67 +1,73 @@
-# 验证记录 · 2026-09-30
+# v0.2.0 验证记录
+
+验证日期：2026-09-30。全部运行在交付开发环境，用合成规则和数据；没有访问公司环境、公司源码或真实业务规则。
+
+## 冻结插件包
+
+- 文件：`liangquanzhou-dmn_decision-0.2.0-unsigned.difypkg`
+- 大小：16,414 bytes
+- SHA-256：`154c415b5d66ca87bcc284bd2eeb9a8fed42ae7b9aeb615a0cb5733a92f18856`
+- 官方 Dify CLI 0.6.10 成功打包；16 个包内文件，ZIP CRC 正常
+- 最终包解压后的 Python 源码与冻结源码逐字一致
+- 包不含引擎客户端、XML、Java、前端补丁、签名私钥或业务凭据
+- 包**未签名**；老 daemon decoder 测试也明确断言 `Verified()==false`
 
 ## 已通过
 
-- Python 3.12.14 / Dify Plugin SDK 0.10.2：83 项插件单元/契约测试
-- 真实 SDK 公共 `Tool.invoke()` → HTTP → Java 21 / Apache KIE 10.2.0 standalone JAR：8 项端到端联调测试
-- Java 服务真实 HTTP/KIE 集成：15 项，失败 0、错误 0、跳过 0
-- SDK `PluginRegistration` 实际加载 manifest、provider 和 evaluate Tool 成功
-- 官方 Dify CLI 0.6.10 打包成功，生成真实 `.difypkg`，检查含 15 个预期文件；不含私钥、真实 `.env`、缓存、Java 二进制或 node_modules
-- Python compileall 与 pip dependency check 通过
-- Maven shaded JAR 打包、独立进程 `/health` 和 `/evaluate` smoke 通过
-- 服务生产模式未配置令牌时退出并拒绝启动；本地开发模式仅为隔离测试
+1. **246 项 pytest**：212 项 evaluator + 30 项 JSON 边界 + 4 项实际 SDK Tool 外壳
+   - 全部指定条件算子、FIRST/COLLECT 全量求值、三值逻辑、引用和点号完整键、空结构
+   - 严格 bool/number/string 类型、对象引用相等、不深比较、缺失优先级、不短路隐藏错误
+   - discount_share 分金额/舍入边界、constraint_set 特殊聚合、all_values null
+   - 追溯路径生成、笛卡尔超过 32 降级标记、256 alternatives 资源边界
+   - 原规则/output/载荷数据不执行不改写，错误不包含实际输入值
+   - JSON 重复键/非法 Unicode/非有限/不安全整数/大小/深度/节点/规则上限
+   - 完整 SDK 聚合帧超限检查及在首次 yield 前拒绝、转义字符扩张
+2. **官方 SDK 注册**：manifest、空凭据 provider、两个参数及 Tool class 成功加载
+3. **从上述最终 `.difypkg` 解压后启动真实 SDK 子进程**：Python 3.12 + dify-plugin 0.10.2，以 plugin-daemon 0.5.1 的实际 stdio 信封调用
+   - 1 次无凭据 validate 成功
+   - 6 次成功调用：FIRST、COLLECT、无命中、missing/null unknown、混合原始 outputs、含点号键
+   - 18 次明确错误：坏输入、非法表达式/策略/id、大小深度规则限制及超大输出帧等
+   - 共 54 条 variable、6 条 JSON、25 个 session end；每个错误只返回 error/end，**没有部分成功或 no_match 流**
+   - 所有实际 stdout 行都检查不超过 4 MiB
+4. **实际旧 daemon 源码验证**：3 个本包 Go 兼容测试全部通过、无 skip；38 个官方实体 top-level 测试通过
+   - 声明解析、完整 stdio wire、同一 hash 最终包解码与资源检查
+   - provider 声明从最终包 decoder 导出，而非以源码目录替代
+5. **实际 Dify 1.11.1 API 类验证**：从原始 API 源码导入 `ToolProviderEntityWithPlugin` / `ToolInvokeMessage`，接受上述最终包声明及全部消息，任意混合数组与内部 null 保持原样
+6. **独立只读复核**：再次运行 246 pytest、SDK 注册及最终包 stdio；额外 10,000 个确定性随机合成输入无未捕获异常，51,362 项独立 Decimal 金额舍入/三值检查通过
+   - 合法 19,000 元素数组 × 1,000 个 contains 规则的单次最坏扫描样例约 6.34 秒，仅为当前开发环境观察，不是吞吐/并发承诺
 
-## 覆盖范围
+pytest 有 2 个 SDK/依赖上游警告（gevent 导入顺序和 Pydantic 旧 Config 风格），未形成测试失败。
 
-成功命中、无命中、缺少/null 输入、输入类型错误、UNIQUE 多规则冲突、FIRST/COLLECT 引擎语义、FEEL 列表表达式、非法 XML、未知决策、DTD/XXE/外部引用/脚本/扩展拒绝、认证失败、HTTP 方法与 Content-Type、JSON 重复键/尾随内容、输入结构/尺寸/数值边界、超时、重定向、压缩响应拒绝、响应尺寸、错误脱敏、精确高精度数字传输、Dify 可安全序列化输出、准确 XML SHA-256。
+## 输出帧回归
 
-插件精度回归在传输层不会先转 float；实际 FEEL 计算仍遵循上游 KIE Decimal128 语义。未声称无限精度或运行了完整 DMN TCK。
+一个合法 COLLECT 表：1,000 条规则复用同一 400 字符变量名，table 约 441 KB、result JSON 约 1.80 MB，但含全部绑定字段和 result_json 的聚合 JSON 超过 5.45 MB。旧 daemon 默认扫描上限为 5 MiB，仅限制 result 不够。
 
-## 可复现命令
+修复为使用 SDK 的真实 `StreamOutputMessage` / `SessionMessage` / `model_dump_json()` 序列化，对**每条最终消息**按 4 MiB 上限（含 UTF-8、转义、session id、换行）做预检查，全部通过后才开始输出。超限明确 `LIMIT_EXCEEDED`。该案例已在单元、真实 SDK 和独立复核中验证。
+
+## 锁定的官方基线
+
+- [Dify 1.11.1](https://github.com/langgenius/dify/releases/tag/1.11.1)，commit `2058186f22b4e4d4e155f380c130f4e8f21622fa`
+- [plugin-daemon 0.5.1](https://github.com/langgenius/dify-plugin-daemon/tree/0.5.1)，commit `96b51115cb30f008bf4eda7e3787ea27d39c18e2`
+- Python 3.12、SDK 0.10.2、CLI 0.6.10
+- v0.2.0 保留 Dify 1.11.1 minimum，未依赖新版本节点类型或后端改造
+
+## 可重复命令
 
 ```bash
-python -m pytest -q tests/test_plugin.py tests/test_integration.py
+python -m pytest -q tests
 python scripts/check_plugin.py
-mvn -f engine/pom.xml test package
+python tests/compatibility/stdio_smoke.py \
+  --package dist/liangquanzhou-dmn_decision-0.2.0-unsigned.difypkg \
+  --output /tmp/dmn-final-stdio-evidence.json
 ```
 
-运行 Python 真实联调测试前先构建 Java JAR；缺少 JAR 时该测试会明确 skip，不能把 skip 当通过。此次交付前已构建 JAR，以上 8 项实际执行且全部通过。
+Go 和 API 验证需要另行取得**官方准确基线源码**。将本包 `tests/compatibility/daemon_051_test.go` 放入 daemon 的测试目录后，设置源码/证据/最终包路径；详细环境变量见该测试文件。API 检查应将 `PYTHONPATH` 指向官方 Dify 1.11.1 的 `api/`，运行 `tests/compatibility/dify_111_api_check.py --help` 查看证据参数。不能把简化的替代模型当成这一步的通过。
 
-此次 pytest 输出有 2 项来自 SDK/依赖的告警：gevent 导入顺序的 MonkeyPatchWarning、Pydantic 类 Config 弃用告警。它们未导致本套测试失败，但不能据此推断公司并发生产环境已获验证。
+## 尚未验证
 
-## 尚未验证/不作承诺
+- 公司 Dify 的真实安装、签名信任政策、依赖下载/私有包源、管理员权限、数据库和工作流 UI
+- 真实业务表及公司定制 plugin-daemon 的差异
+- 浏览器中的编辑、发布、导入/导出及生产并发/长期资源表现
+- 全量 Dify 前后端部署；本版没有可视化编辑器实现
 
-- 目标部署的 Dify 版本、插件 daemon 配置、私有签名信任、网络权限与部署方式需由部署者核实
-- 此记录不包含部署者自己的 Dify 中安装、发布、执行或保存真实工作流的验收
-- 未运行完整 Dify Web 构建、完整 API/worker/database 栈或正式 DSL 导入导出验收
-- 未构建/运行 Docker 镜像：本环境没有 Docker daemon
-- 没有签名私钥；`.difypkg` 未签名、未获得 Marketplace 审核
-- 未做生产容量/渗透测试、完整依赖漏洞审计、许可证法务审批
-- HTTP 超时/连接限制不等于中断 FEEL 求值的硬执行超时；模型应来自可信编辑者。针对不可信模型的进程隔离/硬超时属于进一步生产加固
-
-前端验证见后续记录与 `frontend/README.md`。编辑器 harness 使用真实 dmn-js 与实际适配组件，但不代替完整 Dify 持久化验收。
-
-## 前端当前结果
-
-- TypeScript 检查通过
-- 5 项契约测试通过：精确身份匹配、配置封装与 JSON/DSL 形态 roundtrip、大小/不安全 XML 拒绝、草稿作用域、前后端示例模型一致性
-- Vite 生产 harness 构建通过（真实 dmn-js 依赖与编辑器组件）
-- 另外 6 项真实 dmn-js DOM 模拟测试通过：XML 导入/导出/显式保存、非法 XML 保留、只读模式、未保存草稿重开/重置、外部变更冲突保护
-- Dify 1.17.1 精确 Git checkout 的补丁 dry-run / apply / 所有输出 hash / 重复执行幂等 / reverse / 回滚后干净工作区 / 修改文件拒绝 / 错误 commit 拒绝均通过
-- 实际 Chromium 验收未完成：此环境浏览器进程无法创建所需进程 socket；云浏览器也拒绝访问本地开发地址。未生成或伪造浏览器截图
-- 完整公司 Dify 的真实浏览器操作、发布/刷新/持久化、DSL 导入导出仍必须验收
-
-## GitHub 发布命名空间回归
-
-发布目标 liangquanzhou/dify-dmn-plugin，插件 author、provider 与前端精确匹配均同步到 liangquanzhou。重新执行 83 项插件测试、11 项前端测试、SDK 注册、前端 typecheck/build、补丁 apply/幂等/reverse/干净树检查，全部通过。插件已用 CLI 0.6.10 重新打包；仍未签名。
-
-## v0.1.1 / Dify 1.11.1 兼容性回归
-
-- 最终包版本0.1.1，最低版本1.11.1，SDK0.10.2保留
-- 对最终包字节执行daemon0.5.1真实解码/manifest/资源校验通过，仍明确unsigned
-- 真实SDK子进程按旧协议完成7个会话，25个变量输出和5个JSON输出通过旧daemon Go类型与Dify1.11.1原始API模型验证
-- 83项插件、8项真实SDK→KIE、15项Java测试再次通过
-- 原11项前端契约/DOM测试、旧React19.2.3环境重放同11项、3项旧i18n适配运行测试均通过
-- 1.11.1和1.17.1真实Git checkout的补丁生命周期/拒绝检查均通过；两版本真实翻译资源类型检查通过，错误的新i18n shim在旧类型环境被负向检查拒绝
-- 旧1.17.1补丁和baseline内容未改变；新增1.11.1专用补丁、翻译shim及精确版本选择器
-- 完整Dify部署、公司浏览器/持久化和Docker执行仍未验收。详细证据见COMPATIBILITY-1.11.1.md与frontend/COMPATIBILITY.md
+协议模型、SDK和包解码通过不表示已在公司环境安装成功，也不表示未签名包会通过公司的签名策略。

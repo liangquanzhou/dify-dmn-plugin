@@ -1,48 +1,24 @@
 {
-  "release": "0.1.1",
-  "build_date_utc": "2026-09-30",
-  "plugin_sdk": "0.10.2",
-  "plugin_cli": "0.6.10",
-  "kie_dmn": "10.2.0",
-  "dmn_js": "17.12.2",
-  "python": "3.12.14",
-  "java": "21",
-  "plugin_package": {
-    "filename": "liangquanzhou-dmn_decision-0.1.1-unsigned.difypkg",
-    "signed": false,
-    "sha256": "16c5ed36b7610257b75f9ed46f59ada2ee6d9ead4bb7bd912587977b328819c1"
-  },
-  "dependency_manifests": {
-    "plugin/requirements.txt": "202053246c6738431a723896cdc66f31370fdec1cb75724a31a1f2ae05d7503a",
-    "engine/pom.xml": "a0b893e48d5f256b1e9bd838000afc8ece2e803775d7792c9790f405af324157",
-    "frontend/package-lock.json": "af53bf68557272616df5a66e9a625424758f61661f40f05383578dab0800098f",
-    "frontend/compatibility/1.11.1/package-lock.json": "7dbb0cb5550c7408245c60401fe6daa6b5a5f5bb75be43f9b9c8494c5adee7c4"
-  },
-  "deployment_performed": false,
-  "tests": {
-    "plugin": 83,
-    "python_java_integration": 8,
-    "java_http_kie": 15,
-    "frontend_shared_contract_dom": 11,
-    "frontend_shared_replay_react_19_2_3": 11,
-    "frontend_111_adapter_runtime": 3,
-    "daemon_051_compatibility_go": 3,
-    "actual_browser": "blocked",
-    "full_dify": "not_run"
-  },
-  "github_owner": "liangquanzhou",
-  "repository_name": "dify-dmn-plugin",
-  "release_tag": "v0.1.1",
+  "version": "0.2.0",
   "minimum_dify_version": "1.11.1",
-  "dify_baselines": [
-    {
-      "tag": "1.11.1",
-      "commit": "2058186f22b4e4d4e155f380c130f4e8f21622fa",
-      "bundled_daemon": "0.5.1-local"
-    },
-    {
-      "tag": "1.17.1",
-      "commit": "8387590ace4a094de812b7847fc6a4c3a27cd52b"
-    }
-  ]
+  "dify_commit": "2058186f22b4e4d4e155f380c130f4e8f21622fa",
+  "daemon_version": "0.5.1",
+  "daemon_commit": "96b51115cb30f008bf4eda7e3787ea27d39c18e2",
+  "sdk": "0.10.2",
+  "python": "3.12",
+  "cli": "0.6.10",
+  "package": "liangquanzhou-dmn_decision-0.2.0-unsigned.difypkg",
+  "package_bytes": 16414,
+  "sha256": "154c415b5d66ca87bcc284bd2eeb9a8fed42ae7b9aeb615a0cb5733a92f18856",
+  "signed": false,
+  "pytest_passed": 246,
+  "stdio_success_calls": 6,
+  "stdio_error_calls": 18,
+  "stdio_variable_messages": 54,
+  "stdio_json_messages": 6,
+  "stdio_session_ends": 25,
+  "external_service_required": false,
+  "provider_credentials_required": false,
+  "visual_editor_included": false,
+  "company_installation_verified": false
 }

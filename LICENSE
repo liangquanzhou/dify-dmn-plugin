@@ -20,6 +20,4 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-Third-party code and derived Dify patch context retain their original licenses.
-See THIRD_PARTY_NOTICES.md. This license does not relicense Dify, dmn-js,
-Apache KIE or any of their dependencies.
+Third-party dependencies retain their original licenses. See THIRD_PARTY_NOTICES.md in the source distribution.

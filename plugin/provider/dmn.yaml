@@ -2,35 +2,14 @@ identity:
   author: liangquanzhou
   name: dmn
   label:
-    en_US: DMN Decision
-    zh_Hans: DMN 决策
+    en_US: JSON Decision Table
+    zh_Hans: JSON 决策表
   description:
-    en_US: Evaluate a saved DMN XML snapshot using Apache KIE
-    zh_Hans: 使用 Apache KIE 执行节点中保存的 DMN XML
+    en_US: Evaluate one custom JSON decision table inside the plugin
+    zh_Hans: 在插件内部执行一张自定义 JSON 决策表
   icon: icon.svg
   tags: [utilities]
-credentials_for_provider:
-  engine_url:
-    type: text-input
-    required: true
-    label:
-      en_US: Private DMN engine URL
-      zh_Hans: 企业内部 DMN 引擎地址
-    placeholder:
-      en_US: https://dmn-engine.internal
-      zh_Hans: https://dmn-engine.internal
-    help:
-      en_US: Admin-controlled origin only; no URL credentials, query or fragment. HTTP is for isolated internal development only.
-      zh_Hans: 由管理员配置的引擎地址，不能带账号、查询参数或片段。HTTP 仅供隔离内部开发网络使用。
-  api_token:
-    type: secret-input
-    required: false
-    label:
-      en_US: Engine bearer token
-      zh_Hans: 引擎访问令牌
-    help:
-      en_US: Configure securely with your administrator. Required by production deployments; never put it in a workflow.
-      zh_Hans: 由管理员安全配置，生产部署必须启用；不要写入工作流。
+credentials_for_provider: {}
 tools:
   - tools/evaluate.yaml
 extra:

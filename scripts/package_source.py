@@ -3,7 +3,7 @@ from pathlib import Path
 import zipfile
 
 root = Path(__file__).resolve().parents[1]
-output = root/'dist/dify-dmn-integration-0.1.1-source.zip'
+output = root/'dist/dify-dmn-integration-0.2.0-source.zip'
 output.parent.mkdir(exist_ok=True)
 exclude_dirs = {'node_modules','.venv','.git','__pycache__','.pytest_cache','target','test-results','playwright-report'}
 with zipfile.ZipFile(output,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=9) as archive:
