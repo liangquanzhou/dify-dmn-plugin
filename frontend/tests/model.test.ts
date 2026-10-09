@@ -1,0 +1,20 @@
+import { describe, it, expect } from 'vitest'
+import { parseTable, outputValue } from '../src/model'
+import { first, collect, edge } from '../demo/fixtures'
+const ready = (table: unknown) => { const p = parseTable(JSON.stringify(table)); if (p.kind !== 'ready') throw new Error(p.message); return p.matrix }
+describe('decision matrix model', () => {
+  it('builds actual field columns and preserves rule order', () => { const m = ready(first); expect(m.fields).toEqual(['地区','订单金额','会员']); expect(m.outputs.map(x=>x.label)).toEqual(['$["output"]["配送方式"]','$["output"]["运费"]','$["output"]["人工审核"]']); expect(m.rows.map(x=>x.rule.id)).toEqual(first.rules.map(x=>x.id)) })
+  it('keeps nested OR as OR with original parentheses', () => { const m = ready(collect); expect(m.rows[0].logic).toBe('(A 或 (B 且 C))'); expect(m.rows[0].fullLogic).toBe('("region" = "north" 或 ("score" ≥ 80 且 "checks" 约束集 满足))'); expect(m.rows[1].logic).toBe('(A 且 B)'); expect(m.rows[1].atoms.map(x=>x.field)).toEqual(['score','score']) })
+  it('distinguishes all/any empty and boolean constants', () => { const m=ready({id:'x',hit_policy:'FIRST',rules:[{id:'a',when:{all:[]}},{id:'b',when:{any:[]}},{id:'c',when:false},{id:'d',when:true}]});expect(m.rows.map(x=>x.logic)).toEqual(['始终成立','始终不成立','始终不成立','始终成立']) })
+  it('preserves missing, object, null, false, zero and empty string outputs', () => { const m=ready(edge);const c=m.outputs.find(x=>x.parent==='output'&&x.child===undefined)!;expect(m.rows.slice(0,6).map(r=>outputValue(r.rule,c))).toEqual([{present:false},{present:true,value:{}},{present:true,value:null},{present:true,value:false},{present:true,value:0},{present:true,value:''}]) })
+  it('does not flatten dot keys or nested payloads', () => { const m=ready(edge);expect(m.fields).toEqual(['a.b']);expect(outputValue(m.rows[6].rule,m.outputs.find(x=>x.child==='a.b')!).value).toBe(0);expect(outputValue(m.rows[6].rule,m.outputs.find(x=>x.child==='a')!).value).toEqual({b:false}) })
+  it('never mutates original JSON', () => { const original=JSON.stringify(collect);parseTable(original);expect(JSON.stringify(collect)).toBe(original) })
+  it.each([undefined,null,'',' '])('handles empty input %s',v=>expect(parseTable(v).kind).toBe('empty'))
+  it.each(['{','[]','null','{"id":"x","id":"y","hit_policy":"FIRST","rules":[]}', '{"id":"x","hit_policy":"FIRST","rules":[],"x":1e309}'])('rejects invalid JSON/shape %s',v=>expect(parseTable(v).kind).toBe('error'))
+  it('rejects escaped duplicate keys and unsafe integers',()=>{expect(parseTable('{"id":"x","\\u0069d":"y","hit_policy":"FIRST","rules":[]}').kind).toBe('error');expect(parseTable('{"id":"x","hit_policy":"FIRST","rules":[],"n":9007199254740993}').kind).toBe('error')})
+  it('rejects malformed conditions',()=>{for(const when of [{eq:['x']},{all:true},{any:[{}]},{constraint_set:{record:'x',mode:'unknown'}},{foo:1},{all_values:['x',{ref:'y'}]}])expect(parseTable(JSON.stringify({id:'x',hit_policy:'FIRST',rules:[{id:'r',when}]})).kind).toBe('error')})
+  it('does not confuse literal object values with variable refs',()=>{const m=ready({id:'x',hit_policy:'COLLECT',rules:[{id:'r',when:{eq:['x',{ref:'y'}]},output:{}}]});expect(m.rows[0].atoms[0].label).toBe('= 引用("y")')})
+  it('accepts 1000 rows without truncation',()=>{const m=ready({id:'many',hit_policy:'COLLECT',rules:Array.from({length:1000},(_,i)=>({id:String(i),when:true,output:i}))});expect(m.rows).toHaveLength(1000)})
+  it('enforces declared size/depth limits',()=>{expect(parseTable(' '.repeat(512*1024)+'{}').kind).toBe('error');let x:unknown=true;for(let i=0;i<35;i++)x={all:[x]};expect(parseTable(JSON.stringify({id:'x',hit_policy:'FIRST',rules:[{id:'r',when:x}]})).kind).toBe('error')})
+})
+it('all paths distinguish empty keys, quotes and nested names',()=>{const m=ready({id:'paths',hit_policy:'FIRST',rules:[{id:'r',when:{all:[{eq:['',1]},{eq:['""',2]}]},output:{x:1},x:2,'':{x:3}}]});expect(new Set(m.outputs.map(x=>x.label)).size).toBe(3);expect(m.outputs.map(x=>x.label)).toEqual(['$["output"]["x"]','$["x"]','$[""]["x"]']);expect(m.fields).toEqual(['','""'])})

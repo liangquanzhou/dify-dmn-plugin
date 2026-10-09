@@ -14,3 +14,6 @@ dist/
 release-assets/
 *.private.pem
 *secret*env*
+
+# Raw local validation artifacts are not public source
+evidence/

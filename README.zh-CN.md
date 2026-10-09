@@ -1,21 +1,33 @@
-# Dify 单张 JSON 决策表插件 v0.3.0
+# JSON 决策矩阵 v0.4.1
 
-一个 Dify Tool 节点执行一张自定义 JSON 决策表。全部求值在插件内部完成，**不需要引擎地址、访问令牌、Java 服务或 XML**。适配目标是 Dify **1.11.1**。
+为 Dify **1.11.1** 工作流 Tool 节点增加只读配置矩阵：条件字段为列、输出字段为列、规则为行，嵌套且/或逻辑保留。展示与 Python 执行器共用原始 `table_json`；执行语义和输出合约沿用 v0.3.0。
 
-本版只提供标准 Tool 和原生参数配置；**不自带可视化表格编辑器**。内嵌可视化编辑仍需要单独的 Dify 前端扩展。本版不包含旧的 dmn-js/XML 补丁。若此前部署过旧补丁，请先按[迁移说明](docs/MIGRATION-0.2.0.md)撤回。
+- [v0.4.1 发布说明与附件](docs/RELEASE-0.4.1.md)
+- [安装：标准插件包 + 单独构建的 web 接入](docs/INSTALL-0.4.1.md)
+- [完整验证范围](docs/VALIDATION-0.4.1.md) · [真实 Docker 合成验收](docs/DOCKER-VALIDATION-0.4.1.md)
 
-## 安装
+## 安装 v0.4.1
 
-1. 在测试 Workspace 打开 **Plugins → Install from GitHub**，输入仓库地址：`https://github.com/liangquanzhou/dify-dmn-plugin`
-2. 选择 **v0.3.0**，再选择该 Release 中唯一的 `.difypkg` 文件：`liangquanzhou-dmn_decision-0.3.0-unsigned.difypkg`，按界面提示安装。不要选旧版或源码 ZIP
-3. 插件列表应显示“JSON 决策表”，无需填写引擎地址或提供方凭据
-4. 工作流添加“执行 JSON 决策表”Tool。必填参数仍为 `table_json`（静态 JSON 表）和 `values_json`（绑定上游 JSON 字符串）；另有可选 `expected_sha256` 内容版本锁
+1. 先由管理员审查未签名包，完成公司批准的签名、信任与分发流程，保持签名校验开启
+2. 若测试部署允许安装经审查的 GitHub 附件，打开 **Plugins → Install from GitHub**，输入 `https://github.com/liangquanzhou/dify-dmn-plugin`，选择 **v0.4.1** 及 `liangquanzhou-dmn_decision-0.4.1-unsigned.difypkg`。策略拒绝未签名包时，应改用管理员批准的签名分发版本；不要选择源码 ZIP，也不要关闭签名校验
+3. 插件列表应显示“JSON 决策表”。在测试工作流添加“执行 JSON 决策表”Tool，设置静态 `table_json`，绑定上游 `values_json`；可选 `expected_sha256` 用于内容版本锁。无需引擎地址或提供方凭据
+4. 要在节点面板中看到矩阵，另从源码 ZIP 按[安装说明](docs/INSTALL-0.4.1.md)应用并构建 web 接入。必须精确匹配 Dify 提交 `2058186f22b4e4d4e155f380c130f4e8f21622fa`
 
-本 Release 的包未签名。如果公司策略拒绝未签名插件，请交管理员审查并按公司批准的签名/分发流程处理，保持签名校验开启。只有公司 Dify 实际提供本地文件安装入口时，管理员才可将本地安装作为备用；没有该入口无需寻找。
+`.difypkg` 只安装标准 Tool，不能单独注入 React。配套 web 接入是只读预览，不是可视化规则编辑器；JSON 仍通过 Dify 原生表单编辑。发布附件 `dmn-decision-matrix-0.4.1-offline.html` 可直接打开查看同一组件，不需要 Node，也不包含 Python 运行时或离线规则执行能力。
 
-插件技术身份仍为 `liangquanzhou/dmn_decision` / provider `dmn` / tool `evaluate`。这用于有意识地升级现有插件，并不表示 v0.3.0 支持标准 DMN。升级旧 0.1.x 是破坏性变更，先备份并新建测试节点，不能让生产旧 XML 工作流直接使用新版。
+## 已通过真实 Docker 工作流验收
 
-## v0.3.0 新增能力
+2026-10-09 在云端隔离 Docker Dify 1.11.1 安装插件 0.4.1，应用配套 web 后显示矩阵，并从真实 UI 执行 **Start → DMN → End**：**3 个节点，2.136330 秒，0 异常**。选中 `priority`，`priority` 与 `standard` 的条件均为 true；预览展开、关闭与运行后，持久化 `table_json` 原文字节不变。
+
+这次测试仅在获明确批准的隔离实例使用了签名校验例外。公司安装仍必须经过审查、签名和信任配置；此次没有部署公司环境，合成流程通过不代表全部 Dify 功能或生产业务已验收。
+
+## 兼容性与执行合约
+
+一个 Dify Tool 节点执行一张自定义 JSON 决策表，全部求值在插件内部完成，不需要外部引擎、访问令牌、Java 服务或 XML。插件技术身份仍为 `liangquanzhou/dmn_decision` / provider `dmn` / tool `evaluate`，不表示支持标准 DMN 或 FEEL。
+
+v0.3.0 JSON 执行合约保持不变；从 v0.1.x XML 升级属于破坏性变更，须先备份并新建测试节点。旧 dmn-js/XML/KIE 补丁不兼容，按[迁移说明](docs/MIGRATION-0.2.0.md)撤回，不能让生产旧 XML 工作流直接使用新版。
+
+## 沿用的 v0.3.0 执行合约
 
 旧表无需重写：未设置 `unknown_policy` 时继续 v0.2.0 的选择行为。需要阻止“缺输入却落入兜底”时，在**表 JSON 内**加 `"unknown_policy":"strict"`：FIRST 遇到第一条 true 之前的未知会等待，第一条 true 之后的未知不阻塞；COLLECT 遇到任意未知会等待。
 
@@ -79,9 +91,9 @@ Dify 1.11.1 对任意类型混合 `outputs` 数组可能显示 `Array[Unknown]`�
 若管理员已持有批准的签名密钥，可用官方 CLI：
 
 ```bash
-/path/to/dify signature sign ./liangquanzhou-dmn_decision-0.3.0-unsigned.difypkg \
+/path/to/dify signature sign ./liangquanzhou-dmn_decision-0.4.1-unsigned.difypkg \
   -p /secure/path/company.private.pem
-/path/to/dify signature verify ./liangquanzhou-dmn_decision-0.3.0-unsigned.signed.difypkg \
+/path/to/dify signature verify ./liangquanzhou-dmn_decision-0.4.1-unsigned.signed.difypkg \
   -p /approved/path/company.public.pem
 ```
 
@@ -98,7 +110,7 @@ DIFY_CLI=/path/to/dify bash scripts/package_plugin.sh
 python scripts/package_source.py
 ```
 
-实际检查和未验证范围见 [验证记录](docs/VALIDATION.md)。不把源码模型/SDK协议验证表述为公司环境安装成功。生产采用前仍需依赖审查、签名、公司 Dify 安装和真实工作流验收。
+实际检查和未验证范围见 [v0.4.1 验证记录](docs/VALIDATION-0.4.1.md) 和 [真实 Docker 合成验收](docs/DOCKER-VALIDATION-0.4.1.md)。云端合成工作流成功不代表公司环境安装成功。生产采用前仍需依赖审查、签名、公司 Dify 安装和真实业务工作流验收。
 
 ## 官方参考
 

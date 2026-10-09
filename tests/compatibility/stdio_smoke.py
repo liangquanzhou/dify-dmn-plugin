@@ -127,7 +127,7 @@ def plugin_directory(root, package):
     if package is None:
         yield root
         return
-    with tempfile.TemporaryDirectory(prefix="dmn-v030-package-") as destination:
+    with tempfile.TemporaryDirectory(prefix="dmn-v041-package-") as destination:
         dest = Path(destination)
         with zipfile.ZipFile(package) as archive:
             for item in archive.infolist():
@@ -204,7 +204,7 @@ def run(output, root, package=None):
 
         try:
             manifest = receive(lambda item: item.get("type") == "plugin")
-            assert manifest["version"] == "0.3.0"
+            assert manifest["version"] == "0.4.1"
             assert manifest["author"] == "liangquanzhou" and manifest["name"] == "dmn_decision"
             assert manifest["meta"]["minimum_dify_version"] == "1.11.1"
             assert manifest["meta"]["runner"]["version"] == "3.12"
@@ -271,7 +271,7 @@ def run(output, root, package=None):
                 assert "PRIVATE-VALUE-FOR-ERROR" not in dumps(error), (session_id, error)
             assert max(wire_line_sizes) <= 4 * 1024 * 1024, "SDK emitted an unsafe daemon frame"
             evidence = {"manifest": manifest, "events": captured,
-                        "compatibility": {"plugin_version": "0.3.0", "sdk_version": sdk_version,
+                        "compatibility": {"plugin_version": "0.4.1", "sdk_version": sdk_version,
                                           "python_version": sys.version.split()[0],
                                           "success_sessions": SUCCESS_SESSIONS, "error_sessions": ERROR_SESSIONS,
                                           "credential_session": "credential-empty",
@@ -296,7 +296,7 @@ def run(output, root, package=None):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--output", type=Path, default=Path("/tmp/dmn-v030-stdio-evidence.json"))
+    parser.add_argument("--output", type=Path, default=Path("/tmp/dmn-v041-stdio-evidence.json"))
     parser.add_argument("--plugin-root", type=Path, default=ROOT / "plugin")
     parser.add_argument("--package", type=Path, help="Run files extracted from this exact .difypkg")
     args = parser.parse_args()

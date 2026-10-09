@@ -1,0 +1,120 @@
+/** Run in the patched Dify checkout. This is a panel integration test with mocked Dify services/forms. */
+import type { ComponentProps, ReactNode } from 'react'
+import { fireEvent, render, screen } from '@testing-library/react'
+import Panel from '@/app/components/workflow/nodes/tool/panel'
+import useConfig from '@/app/components/workflow/nodes/tool/use-config'
+import ToolForm from '@/app/components/workflow/nodes/tool/components/tool-form'
+jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }))
+jest.mock('@/app/components/workflow/nodes/tool/use-config', () => ({ __esModule: true, default: jest.fn() }))
+jest.mock('@/app/components/workflow/nodes/tool/components/tool-form', () => ({ __esModule: true, default: jest.fn(() => null) }))
+jest.mock('@/app/components/workflow/nodes/_base/components/split', () => ({ __esModule: true, default: () => null }))
+jest.mock('@/app/components/workflow/nodes/_base/components/field', () => ({
+  __esModule: true, default: ({ children }: {
+    children: ReactNode;
+  }) => children,
+}))
+jest.mock('@/app/components/base/loading', () => ({ __esModule: true, default: () => null }))
+jest.mock('@/app/components/workflow/nodes/_base/components/output-vars', () => ({
+  __esModule: true, default: ({ children }: {
+    children: ReactNode;
+  }) => children, VarItem: () => null,
+}))
+jest.mock('@/app/components/workflow/nodes/_base/components/variable/object-child-tree-panel/show', () => ({ __esModule: true, default: () => null }))
+jest.mock('@/app/components/workflow/store', () => ({ useStore: (selector: (state: object) => unknown) => selector({}) }))
+jest.mock('@/app/components/workflow/utils/tool', () => ({ wrapStructuredVarItem: jest.fn() }))
+jest.mock('@/app/components/workflow/nodes/_base/components/variable/use-match-schema-type', () => ({ __esModule: true, default: () => ({ schemaTypeDefinitions: {} }), getMatchedSchemaType: jest.fn() }))
+const identity = { provider_type: 'builtin', provider_id: 'liangquanzhou/dmn_decision/dmn', tool_name: 'evaluate' }
+const raw = JSON.stringify({ id: 'panel-matrix-a', hit_policy: 'FIRST', rules: [{ id: 'rule-a', when: true, output: { action: 'review' } }] })
+const schema = [{ variable: 'table_json' }, { variable: 'expected_sha256' }]
+const setSettings = jest.fn()
+const setInput = jest.fn()
+function configure(overrides: Record<string, unknown> = {}) {
+  const values = { table_json: { type: 'mixed', value: raw }, expected_sha256: { type: 'constant', value: 'a'.repeat(64) } }
+  const config = {
+    inputs: { ...identity, tool_parameters: {} },
+    readOnly: false,
+    toolInputVarSchema: [],
+    setInputVar: setInput,
+    toolSettingSchema: schema,
+    toolSettingValue: values,
+    setToolSettingValue: setSettings,
+    currCollection: undefined,
+    isShowAuthBtn: false,
+    isLoading: false,
+    outputSchema: [],
+    hasObjectOutput: false,
+    currTool: undefined,
+    ...overrides,
+  }
+  jest.mocked(useConfig).mockReturnValue(config as unknown as ReturnType<typeof useConfig>)
+  return config
+}
+const data = {} as ComponentProps<typeof Panel>['data']
+const panelProps = {} as ComponentProps<typeof Panel>['panelProps']
+beforeAll(() => {
+  Object.defineProperty(HTMLDialogElement.prototype, 'showModal', {
+    configurable: true, value() {
+      this.open = true
+    },
+  })
+  Object.defineProperty(HTMLDialogElement.prototype, 'close', {
+    configurable: true, value() {
+      this.open = false
+      this.dispatchEvent(new Event('close'))
+    },
+  })
+})
+beforeEach(() => {
+  jest.clearAllMocks()
+  configure()
+})
+test('renders the real matrix by default and preserves all native form settings without writing', () => {
+  const config = configure()
+  const { container } = render(<Panel id='node-a' data={data} panelProps={panelProps}/>)
+  expect(screen.getByRole('table')).toBeInTheDocument()
+  const rawSettings = screen.getByText('workflow.nodes.tool.dmnRawSettings').closest('details')
+  expect(rawSettings).not.toHaveAttribute('open')
+  const props = jest.mocked(ToolForm).mock.calls[0][0]
+  expect(props.schema).toBe(schema)
+  expect(props.value).toBe(config.toolSettingValue)
+  expect(props.onChange).toBe(setSettings)
+  expect(container.querySelector('[data-node-id="node-a"]')).toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: /展开大表/ }))
+  expect(container.querySelector('dialog')).toHaveAttribute('open')
+  expect(setSettings).not.toHaveBeenCalled()
+  expect(setInput).not.toHaveBeenCalled()
+})
+test('leaves another provider on the original native settings branch', () => {
+  configure({ inputs: { ...identity, provider_id: 'other/dmn_decision/dmn', tool_parameters: {} } })
+  render(<Panel id='other' data={data} panelProps={panelProps}/>)
+  expect(screen.queryByRole('table')).not.toBeInTheDocument()
+  expect(screen.queryByText('workflow.nodes.tool.dmnRawSettings')).not.toBeInTheDocument()
+  expect(ToolForm).toHaveBeenCalledTimes(1)
+  expect(setSettings).not.toHaveBeenCalled()
+})
+test('does not render a guessed static matrix for dynamic variables', () => {
+  configure({ toolSettingValue: { table_json: { type: 'variable', value: ['upstream', 'table'] } } })
+  render(<Panel id='dynamic' data={data} panelProps={panelProps}/>)
+  expect(screen.getByRole('status')).toHaveTextContent('workflow.nodes.tool.dmnDynamicPreview')
+  expect(screen.queryByRole('table')).not.toBeInTheDocument()
+  expect(ToolForm).toHaveBeenCalledTimes(1)
+  expect(setSettings).not.toHaveBeenCalled()
+})
+test('passes readOnly through and resets dialog/details on node switching', () => {
+  configure({ readOnly: true })
+  const { container, rerender } = render(<Panel id='node-a' data={data} panelProps={panelProps}/>)
+  expect(jest.mocked(ToolForm).mock.calls[0][0].readOnly).toBe(true)
+  expect(screen.getByText('只读面板')).toBeInTheDocument()
+  const details = screen.getByText('workflow.nodes.tool.dmnRawSettings').closest('details')!
+  details.open = true
+  fireEvent.click(screen.getByRole('button', { name: /展开大表/ }))
+  configure({ readOnly: true, toolSettingValue: { table_json: { type: 'constant', value: raw.replace('panel-matrix-a', 'panel-matrix-b') } } })
+  rerender(<Panel id='node-b' data={data} panelProps={panelProps}/>)
+  expect(screen.getByText('workflow.nodes.tool.dmnRawSettings').closest('details')).not.toHaveAttribute('open')
+  expect(container.querySelector('dialog')).not.toHaveAttribute('open')
+  expect(container.querySelector('[data-node-id="node-a"]')).not.toBeInTheDocument()
+  expect(container.querySelector('[data-node-id="node-b"]')).toBeInTheDocument()
+  expect(screen.queryByText('panel-matrix-a')).not.toBeInTheDocument()
+  expect(setSettings).not.toHaveBeenCalled()
+  expect(setInput).not.toHaveBeenCalled()
+})

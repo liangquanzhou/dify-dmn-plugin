@@ -1,0 +1,112 @@
+diff --git a/web/app/components/workflow/nodes/tool/panel.tsx b/web/app/components/workflow/nodes/tool/panel.tsx
+index 3a62320..d9e64d5 100644
+--- a/web/app/components/workflow/nodes/tool/panel.tsx
++++ b/web/app/components/workflow/nodes/tool/panel.tsx
+@@ -5,6 +5,8 @@ import Split from '../_base/components/split'
+ import type { ToolNodeType } from './types'
+ import useConfig from './use-config'
+ import ToolForm from './components/tool-form'
++import DecisionTablePreview from './components/dmn-decision-table/decision-table'
++import { isDmnDecisionTool, readStaticTableSetting } from './components/dmn-decision-table/identity'
+ import Field from '@/app/components/workflow/nodes/_base/components/field'
+ import type { NodePanelProps } from '@/app/components/workflow/types'
+ import Loading from '@/app/components/base/loading'
+@@ -41,6 +43,8 @@ const Panel: FC<NodePanelProps<ToolNodeType>> = ({
+   const pipelineId = useStore(s => s.pipelineId)
+   const setShowInputFieldPanel = useStore(s => s.setShowInputFieldPanel)
+   const { schemaTypeDefinitions } = useMatchSchemaType()
++  const showDecisionTable = isDmnDecisionTool(inputs)
++  const tableSetting = readStaticTableSetting(toolSettingValue?.table_json)
+ 
+   if (isLoading) {
+     return (
+@@ -79,19 +83,50 @@ const Panel: FC<NodePanelProps<ToolNodeType>> = ({
+ 
+           {toolSettingSchema.length > 0 && (
+             <>
+-              <OutputVars
+-                title={t(`${i18nPrefix}.settings`)}
+-                collapsed={collapsed}
+-                onCollapse={setCollapsed}
+-              >
+-                <ToolForm
+-                  readOnly={readOnly}
+-                  nodeId={id}
+-                  schema={toolSettingSchema as any}
+-                  value={toolSettingValue}
+-                  onChange={setToolSettingValue}
+-                />
+-              </OutputVars>
++              {showDecisionTable ? (
++                <div className='px-4 pb-3'>
++                  {tableSetting.available ? (
++                    <DecisionTablePreview
++                      key={`matrix:${id}`}
++                      value={tableSetting.value}
++                      nodeId={id}
++                      readOnly={readOnly}
++                    />
++                  ) : (
++                    <div className='text-sm text-text-secondary' role='status'>
++                      {t(`${i18nPrefix}.dmnDynamicPreview`)}
++                    </div>
++                  )}
++                  <details key={`settings:${id}`} className='mt-3'>
++                    <summary className='cursor-pointer text-sm font-medium text-text-secondary'>
++                      {t(`${i18nPrefix}.dmnRawSettings`)}
++                    </summary>
++                    <div className='mt-2'>
++                      <ToolForm
++                        readOnly={readOnly}
++                        nodeId={id}
++                        schema={toolSettingSchema as any}
++                        value={toolSettingValue}
++                        onChange={setToolSettingValue}
++                      />
++                    </div>
++                  </details>
++                </div>
++              ) : (
++                <OutputVars
++                  title={t(`${i18nPrefix}.settings`)}
++                  collapsed={collapsed}
++                  onCollapse={setCollapsed}
++                >
++                  <ToolForm
++                    readOnly={readOnly}
++                    nodeId={id}
++                    schema={toolSettingSchema as any}
++                    value={toolSettingValue}
++                    onChange={setToolSettingValue}
++                  />
++                </OutputVars>
++              )}
+               <Split />
+             </>
+           )}
+diff --git a/web/i18n/en-US/workflow.ts b/web/i18n/en-US/workflow.ts
+index 54cd70e..6d00571 100644
+--- a/web/i18n/en-US/workflow.ts
++++ b/web/i18n/en-US/workflow.ts
+@@ -766,6 +766,8 @@ const translation = {
+       'assignedVarsDescription': 'Assigned variables must be writable variables, such as conversation variables.',
+     },
+     tool: {
++      dmnRawSettings: 'Raw JSON and model version lock',
++      dmnDynamicPreview: 'This table uses runtime variables. A static decision preview is unavailable; use the original settings below.',
+       authorize: 'Authorize',
+       inputVars: 'Input Variables',
+       settings: 'Settings',
+diff --git a/web/i18n/zh-Hans/workflow.ts b/web/i18n/zh-Hans/workflow.ts
+index f9e29ef..21fe745 100644
+--- a/web/i18n/zh-Hans/workflow.ts
++++ b/web/i18n/zh-Hans/workflow.ts
+@@ -766,6 +766,8 @@ const translation = {
+       'assignedVarsDescription': '赋值变量必须是可写入的变量，例如会话变量。',
+     },
+     tool: {
++      dmnRawSettings: '原始 JSON 与模型版本锁',
++      dmnDynamicPreview: '此表使用运行时变量，无法显示静态决策预览；请查看下方原生配置。',
+       authorize: '授权',
+       inputVars: '输入变量',
+       settings: '设置',

@@ -1,0 +1,17 @@
+{
+  "dify_commit": "2058186f22b4e4d4e155f380c130f4e8f21622fa",
+  "files": {
+    "web/app/components/workflow/nodes/tool/panel.tsx": {
+      "original_sha256": "ec07829ea89ba7b34591ef8d78109c1a62f919e053239e5551668053f40d23c1",
+      "patched_sha256": "498e704bdc18d5dd19403dbc6c99cfeeb8f857c1931e3294388e480be906f7c6"
+    },
+    "web/i18n/en-US/workflow.ts": {
+      "original_sha256": "3251a254930d7d40e01a3eb294442189e557fa0873e67a1ec3741ed4ab6743c2",
+      "patched_sha256": "b61ae78848c022685fef306460880e78916e01ff75d13aabfdf30662591f8666"
+    },
+    "web/i18n/zh-Hans/workflow.ts": {
+      "original_sha256": "aa62ccea8d6363bd7c42795ac1e81bc3f38ee22b7b9ca4561373f3219d8c4901",
+      "patched_sha256": "14ff5f31b3a0dc00b84a9f8a08734c16f60cab3e1912202b7f24736e54e92a15"
+    }
+  }
+}

@@ -34,7 +34,7 @@ func read(t *testing.T, path string) []byte {
 
 func checkManifest(t *testing.T, manifest pe.PluginDeclaration) {
 	t.Helper()
-	if manifest.Version != "0.3.0" || manifest.Author != "liangquanzhou" || manifest.Name != "dmn_decision" {
+	if manifest.Version != "0.4.1" || manifest.Author != "liangquanzhou" || manifest.Name != "dmn_decision" {
 		t.Fatal("wrong release identity", manifest)
 	}
 	if manifest.Meta.MinimumDifyVersion == nil || *manifest.Meta.MinimumDifyVersion != "1.11.1" || manifest.Meta.Runner.Version != "3.12" {
@@ -194,7 +194,7 @@ func loadEvidence(t *testing.T) wireEvidence {
 	if err := json.Unmarshal(read(t, path), &evidence); err != nil {
 		t.Fatal(err)
 	}
-	if evidence.Compatibility.PluginVersion != "0.3.0" || evidence.Compatibility.SDKVersion != "0.10.2" {
+	if evidence.Compatibility.PluginVersion != "0.4.1" || evidence.Compatibility.SDKVersion != "0.10.2" {
 		t.Fatal("wrong evidence runtime")
 	}
 	return evidence

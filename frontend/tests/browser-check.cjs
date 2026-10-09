@@ -1,0 +1,53 @@
+/* Run HTTP fixture server and browser in the same cloud execution session. */
+const { chromium } = require('playwright');
+const http = require('http'), fs = require('fs'), path = require('path'), cp = require('child_process'), assert = require('assert');
+const root = path.resolve(__dirname, '../..'), dist = path.join(root, 'frontend/dist');
+const executablePath = process.env.CHROMIUM_EXECUTABLE || chromium.executablePath();
+const evidence = path.join(root, 'evidence');fs.mkdirSync(evidence,{recursive:true});
+const server=http.createServer((req,res)=>{
+ if(req.url==='/api/evaluate'&&req.method==='POST'){let body='';req.on('data',c=>body+=c);req.on('end',()=>{const result=cp.spawnSync(path.join(root,'.venv/bin/python'),[path.join(root,'frontend/demo/evaluate.py')],{input:body,encoding:'utf8'});res.setHeader('Content-Type','application/json');res.statusCode=result.status?400:200;res.end(result.stdout||JSON.stringify({error:result.stderr}));});return}
+ const file=path.join(dist,req.url==='/'?'index.html':req.url);try{res.setHeader('Content-Type',file.endsWith('.js')?'text/javascript':file.endsWith('.css')?'text/css':'text/html');res.end(fs.readFileSync(file))}catch{res.statusCode=404;res.end()}
+});
+(async()=>{
+ await new Promise(r=>server.listen(5181,'127.0.0.1',r));
+ const b=await chromium.launch({executablePath,headless:true,chromiumSandbox:true});
+ const p=await b.newPage({viewport:{width:1480,height:1000},deviceScaleFactor:1});const errors=[];p.on('pageerror',e=>errors.push(e.message));const checks=[];
+ const check=(name,v)=>{assert(v,name);checks.push(name)};
+ await p.goto('http://127.0.0.1:5181');
+ check('FIRST actual field matrix',await p.getByRole('columnheader',{name:'"会员"',exact:true}).isVisible());
+ check('one visible table, no hidden dialog duplicate',await p.locator('table').count()===1);
+ check('four rules in original order',await p.locator('tbody tr').count()===4);
+ check('raw JSON starts collapsed',!(await p.locator('.source').getAttribute('open')));
+ await p.screenshot({path:path.join(evidence,'matrix-first-wide.png'),fullPage:true});
+ await p.getByText('验证执行 · 同一份 JSON → Python 内核',{exact:true}).click();
+ const [firstResponse]=await Promise.all([p.waitForResponse(r=>r.url().endsWith('/api/evaluate')),p.getByRole('button',{name:'执行原始 table_json',exact:true}).click()]);const first=await firstResponse.json();
+ check('same JSON Python FIRST output',first.selected_rule_ids.join('|')==='华北 · 优先配送'&&first.outputs[0].运费===0&&first.outputs[0].人工审核===false);
+ await p.getByText('验证执行 · 同一份 JSON → Python 内核',{exact:true}).click();
+ await p.getByRole('button',{name:'02 COLLECT · 嵌套条件'}).click();
+ check('node switch no stale FIRST table',await p.getByRole('heading',{name:'订单履约路由',exact:true}).count()===0);
+ check('nested OR visibly preserved',await p.getByText('(A 或 (B 且 C))',{exact:true}).isVisible());
+ await p.screenshot({path:path.join(evidence,'matrix-collect-wide.png'),fullPage:true});
+ await p.getByText('验证执行 · 同一份 JSON → Python 内核',{exact:true}).click();
+ const [collectResponse]=await Promise.all([p.waitForResponse(r=>r.url().endsWith('/api/evaluate')),p.getByRole('button',{name:'执行原始 table_json',exact:true}).click()]);const collect=await collectResponse.json();
+ check('same JSON Python COLLECT output',collect.selected_rule_ids.join('|')==='区域或高分合规|分数范围|总是保留审计');
+ await p.getByLabel('values_json',{exact:true}).fill('{"region":"south","score":85}');
+ const [unknownResponse]=await Promise.all([p.waitForResponse(r=>r.url().endsWith('/api/evaluate')),p.getByRole('button',{name:'执行原始 table_json',exact:true}).click()]);const unknown=await unknownResponse.json();check('strict UNKNOWN waits without selected rules',unknown.decision_status==='waiting_input'&&unknown.selected_rule_ids.length===0);
+ await p.getByText('验证执行 · 同一份 JSON → Python 内核',{exact:true}).click();
+ await p.getByRole('button',{name:'440px 侧栏',exact:true}).click();
+ check('actual panel 440px',Math.abs((await p.locator('.panel').boundingBox()).width-440)<1);
+ await p.screenshot({path:path.join(evidence,'matrix-collect-440px.png'),fullPage:true});
+ const region=p.getByRole('region',{name:'决策矩阵，可横向滚动'});const stickyBefore=await p.locator('tbody th').first().boundingBox();await region.evaluate(el=>{el.scrollLeft=el.scrollWidth;});const stickyAfter=await p.locator('tbody th').first().boundingBox();
+ check('sticky rule column remains on horizontal scroll',Math.abs(stickyBefore.x-stickyAfter.x)<1);
+ await p.screenshot({path:path.join(evidence,'matrix-collect-440px-output.png'),fullPage:true});
+ await p.getByRole('button',{name:'展开大表 ↗',exact:true}).click();check('expanded real table modal opens',await p.locator('dialog').evaluate(x=>x.open));
+ await p.screenshot({path:path.join(evidence,'matrix-collect-expanded.png'),fullPage:true});
+ await p.keyboard.press('Escape');check('escape closes modal',!(await p.locator('dialog').evaluate(x=>x.open)));await p.locator('dialog table').waitFor({state:'detached'});check('dialog table unmounted',await p.locator('table').count()===1);
+ await p.getByLabel('模拟只读面板').check();await p.getByText('原始配置 · table_json',{exact:true}).click();check('read-only source cannot edit',await p.getByLabel('table_json',{exact:true}).getAttribute('readonly')!==null);
+ await p.getByLabel('模拟只读面板').uncheck();await p.getByLabel('table_json',{exact:true}).fill('{');check('malformed JSON does not retain stale table',await p.locator('table').count()===0&&await p.getByText('无法展示决策表',{exact:true}).isVisible());
+ await p.getByLabel('table_json',{exact:true}).fill('');check('empty JSON state',await p.locator('table').count()===0);
+ await p.getByRole('button',{name:'01 FIRST · 订单履约'}).click();check('returning to node restores its own JSON',await p.getByRole('heading',{name:'订单履约路由',exact:true}).isVisible());
+ await p.getByRole('button',{name:'04 其他 Tool 节点'}).click();check('other tool excludes matrix',await p.locator('table').count()===0);
+ check('no browser JS errors',errors.length===0);
+ fs.writeFileSync(path.join(evidence,'browser-check.json'),JSON.stringify({checks,errors,first:{selected_rule_ids:first.selected_rule_ids,outputs:first.outputs},collect:{selected_rule_ids:collect.selected_rule_ids},strict:{decision_status:unknown.decision_status,selected_rule_ids:unknown.selected_rule_ids}},null,2));
+ console.log(JSON.stringify({passed:checks.length,checks}));await b.close();server.close();
+})().catch(e=>{console.error(e);server.close();process.exit(1)});
