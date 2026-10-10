@@ -161,3 +161,13 @@ test('partly unreadable node scan cannot establish a unique current selection',(
  assert.equal(snapshotDocument(document).status,'idle')
  delete b.__reactProps$test;assert.equal(snapshotDocument(document).status,'error')
 })
+
+test('workflow editor URL: /app/<id>/workflow and /v2/app/<id>?mode=workflow supported, others not',()=>{
+ const url=(u)=>new JSDOM('<!doctype html><main></main>',{url:u}).window.document
+ for(const u of ['http://localhost/app/abc/workflow','http://localhost/v2/app/ee1aebd3?mode=workflow','http://localhost/v2/app/ee1aebd3/?mode=workflow&x=1']) {
+  const d=url(u);node(d,'A',data());assert.equal(snapshotDocument(d).status,'ready',u)
+ }
+ for(const u of ['http://localhost/v2/app/abc','http://localhost/v2/app/abc?mode=chat','http://localhost/v2/app/abc/extra?mode=workflow','http://localhost/v3/app/abc?mode=workflow','http://localhost/app/abc','http://localhost/app/abc/configuration']) {
+  assert.equal(snapshotDocument(url(u)).status,'unsupported',u)
+ }
+})

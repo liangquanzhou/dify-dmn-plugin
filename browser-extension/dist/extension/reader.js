@@ -52,8 +52,12 @@
     }
     return null;
   }
+  function isWorkflowEditorLocation(location) {
+    if (/^\/app\/[^/]+\/workflow\/?$/.test(location.pathname)) return true;
+    return /^\/v2\/app\/[^/]+\/?$/.test(location.pathname) && new URLSearchParams(location.search).get("mode") === "workflow";
+  }
   function snapshotDocument(document2) {
-    if (!/^\/app\/[^/]+\/workflow\/?$/.test(document2.location.pathname))
+    if (!isWorkflowEditorLocation(document2.location))
       return { status: "unsupported", message: "\u8BF7\u6253\u5F00 Dify 1.11.1 \u7684 Workflow \u7F16\u8F91\u9875\u9762\u3002" };
     const rendered = document2.querySelectorAll(".react-flow__node[data-id]");
     if (rendered.length > 1500) return { status: "error", message: "\u5DE5\u4F5C\u6D41\u8282\u70B9\u8D85\u8FC7 1,500\uFF0C\u65E0\u6CD5\u53EF\u9760\u8BC6\u522B\u5F53\u524D\u9009\u62E9\uFF1B\u672A\u663E\u793A\u90E8\u5206\u626B\u63CF\u7ED3\u679C\u3002" };

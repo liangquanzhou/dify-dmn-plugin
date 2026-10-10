@@ -50,8 +50,13 @@ export function readRenderedNode(element: Element): { id: string; data: unknown 
   }
   return null
 }
+/** Supported editor URLs: /app/<id>/workflow and AgentHub's /v2/app/<id>?mode=workflow. */
+export function isWorkflowEditorLocation(location: { pathname: string; search: string }): boolean {
+  if (/^\/app\/[^/]+\/workflow\/?$/.test(location.pathname)) return true
+  return /^\/v2\/app\/[^/]+\/?$/.test(location.pathname) && new URLSearchParams(location.search).get('mode') === 'workflow'
+}
 export function snapshotDocument(document: Document): Snapshot {
-  if (!/^\/app\/[^/]+\/workflow\/?$/.test(document.location.pathname))
+  if (!isWorkflowEditorLocation(document.location))
     return { status: 'unsupported', message: '请打开 Dify 1.11.1 的 Workflow 编辑页面。' }
   const rendered = document.querySelectorAll('.react-flow__node[data-id]')
   if (rendered.length > 1500) return { status: 'error', message: '工作流节点超过 1,500，无法可靠识别当前选择；未显示部分扫描结果。' }
