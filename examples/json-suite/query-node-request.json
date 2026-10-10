@@ -1,0 +1,328 @@
+{
+  "definition_bundle_json": {
+    "schema_version": "service-decision-dsl.node-architecture.v2",
+    "example_only": true,
+    "deployment": {
+      "runtime_owner": "HOST",
+      "action_backend": "HOST",
+      "business_enabled": false,
+      "enabled_node_kinds": [
+        "START",
+        "DECISION",
+        "END",
+        "QUERY",
+        "ACTION",
+        "EXCLUSIVE"
+      ]
+    },
+    "workflows": [
+      {
+        "workflow_id": "support",
+        "version": "1",
+        "flow_type": "SOLVE",
+        "scope": "EXAMPLE_FRAGMENT",
+        "entry_phase": "P1",
+        "domain_id": "synthetic",
+        "scene_ref": null,
+        "phases": [
+          {
+            "phase_id": "P1",
+            "entry_step": "eligibility",
+            "steps": [
+              {
+                "step_id": "eligibility",
+                "name": "Eligibility",
+                "purpose": "Synthetic gate",
+                "profile": "decision-step-v2",
+                "version": "1",
+                "entry_node": "begin",
+                "main_decision_node": "decide",
+                "max_attempts": 1,
+                "graph": {
+                  "nodes": [
+                    {
+                      "node_id": "begin",
+                      "name": "Begin",
+                      "category": "EVENT",
+                      "kind": "START",
+                      "ports": [
+                        "ok"
+                      ]
+                    },
+                    {
+                      "node_id": "query",
+                      "name": "Read facts",
+                      "category": "EXECUTION",
+                      "kind": "QUERY",
+                      "ports": [
+                        "ok",
+                        "blocked",
+                        "error",
+                        "unknown",
+                        "cancelled"
+                      ],
+                      "capability_ref": "test.read",
+                      "requires_intent": false,
+                      "input_bindings": {
+                        "subject_id": {
+                          "from": {
+                            "source": "context",
+                            "path": [
+                              "subject_id"
+                            ]
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "node_id": "decide",
+                      "name": "Eligibility",
+                      "category": "EXECUTION",
+                      "kind": "DECISION",
+                      "ports": [
+                        "ok",
+                        "error",
+                        "blocked"
+                      ],
+                      "model_ref": "eligibility",
+                      "input_bindings": {
+                        "eligible": {
+                          "from": {
+                            "source": "context",
+                            "path": [
+                              "eligible"
+                            ]
+                          },
+                          "source_format": "PARAMETER"
+                        }
+                      }
+                    },
+                    {
+                      "node_id": "done",
+                      "name": "Done",
+                      "category": "EVENT",
+                      "kind": "END",
+                      "ports": [],
+                      "exit_ref": "business"
+                    },
+                    {
+                      "node_id": "stop",
+                      "name": "Stopped",
+                      "category": "EVENT",
+                      "kind": "END",
+                      "ports": [],
+                      "exit_ref": "technical"
+                    }
+                  ],
+                  "edges": [
+                    {
+                      "edge_id": "e0",
+                      "source": "begin",
+                      "source_port": "ok",
+                      "target": "query"
+                    },
+                    {
+                      "edge_id": "e1",
+                      "source": "decide",
+                      "source_port": "ok",
+                      "target": "done"
+                    },
+                    {
+                      "edge_id": "e2",
+                      "source": "decide",
+                      "source_port": "error",
+                      "target": "stop"
+                    },
+                    {
+                      "edge_id": "e3",
+                      "source": "decide",
+                      "source_port": "blocked",
+                      "target": "stop"
+                    },
+                    {
+                      "edge_id": "query-ok",
+                      "source": "query",
+                      "source_port": "ok",
+                      "target": "decide"
+                    },
+                    {
+                      "edge_id": "query-blocked",
+                      "source": "query",
+                      "source_port": "blocked",
+                      "target": "stop"
+                    },
+                    {
+                      "edge_id": "query-error",
+                      "source": "query",
+                      "source_port": "error",
+                      "target": "stop"
+                    },
+                    {
+                      "edge_id": "query-unknown",
+                      "source": "query",
+                      "source_port": "unknown",
+                      "target": "stop"
+                    },
+                    {
+                      "edge_id": "query-cancelled",
+                      "source": "query",
+                      "source_port": "cancelled",
+                      "target": "stop"
+                    }
+                  ]
+                },
+                "exits": {
+                  "business": {
+                    "class": "BUSINESS",
+                    "destination": {
+                      "kind": "END_WORKFLOW",
+                      "outcome": "business"
+                    }
+                  },
+                  "technical": {
+                    "class": "TECHNICAL",
+                    "destination": {
+                      "kind": "END_WORKFLOW",
+                      "outcome": "technical"
+                    }
+                  }
+                },
+                "reentry_exhausted_exit": "technical"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "models": {
+      "eligibility": {
+        "profile": "service-decision-table-v1",
+        "version": "fixture-1",
+        "hit_policy": "UNIQUE",
+        "parameters": {
+          "eligible": {
+            "type": "boolean",
+            "record_required": true,
+            "nullable": false,
+            "allowed_quality": [
+              "KNOWN",
+              "UNKNOWN",
+              "CONFLICT",
+              "NOT_APPLICABLE"
+            ]
+          }
+        },
+        "rules": [
+          {
+            "rule_id": "yes",
+            "when": [
+              {
+                "path": [
+                  "parameters",
+                  "eligible",
+                  "value"
+                ],
+                "op": "eq",
+                "value": true
+              }
+            ],
+            "output_template_ref": "accepted"
+          }
+        ],
+        "result_templates": {
+          "accepted": {
+            "state": "ELIGIBLE",
+            "data": {
+              "eligibility": {
+                "from": {
+                  "source": "parameters",
+                  "path": [
+                    "eligible",
+                    "value"
+                  ]
+                }
+              }
+            },
+            "actions": []
+          },
+          "empty": {
+            "state": "INELIGIBLE",
+            "data": {},
+            "actions": []
+          }
+        },
+        "on_no_match": "RESULT_TEMPLATE",
+        "empty_template_ref": "empty"
+      }
+    },
+    "capabilities": {
+      "test.read": {
+        "kind": "QUERY",
+        "read_only": true,
+        "implementation": "QUERY_PLAN",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "subject_id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "subject_id"
+          ]
+        },
+        "output_schema": {
+          "type": "object",
+          "properties": {
+            "answer": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "answer"
+          ]
+        },
+        "query_plan_ref": "synthetic.plan"
+      }
+    },
+    "asset_locks": {
+      "synthetic.plan": {
+        "kind": "QUERY_PLAN",
+        "path": "query.json",
+        "digest_kind": "SHA256_BYTES",
+        "sha256": "e1435a79d5a05017d044f52f270b13b583c1ef37020a64d903ddf942bb82f11b"
+      },
+      "synthetic.registry": {
+        "kind": "OPERATION_REGISTRY",
+        "path": "operations.json",
+        "digest_kind": "SHA256_BYTES",
+        "sha256": "3a810ccebc28dcf313fe5fdd43e2ac7aaa82bc7d76b81476bcd8cfeb35e60dbf"
+      }
+    }
+  },
+  "node_ref": {
+    "workflow_id": "support",
+    "phase_id": "P1",
+    "step_id": "eligibility",
+    "node_id": "query"
+  },
+  "expected_definition_sha256": "9231b430520e349266dced5e5d5d7d6e43cf144eaf4efbd71bb3e7066fed25a9",
+  "inputs_json": {
+    "parameters": {
+      "subject_id": "synthetic-subject_scope_ref"
+    },
+    "source_refs": [
+      "synthetic:input"
+    ]
+  },
+  "execution_context_json": {
+    "workflow_run_id": "synthetic-workflow_run_id",
+    "step_run_id": "synthetic-step_run_id",
+    "attempt_id": "synthetic-attempt_id",
+    "node_run_id": "synthetic-node_run_id",
+    "activation_ref": "synthetic-activation_ref",
+    "subject_scope_ref": "synthetic-subject_scope_ref",
+    "authorization_context_ref": "synthetic-authorization_context_ref",
+    "as_of": "2026-10-09T12:00:00Z"
+  }
+}

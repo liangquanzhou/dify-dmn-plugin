@@ -5,7 +5,7 @@ import zipfile
 
 root = Path(__file__).resolve().parents[1]
 manifest = root / 'scripts/source-manifest.txt'
-output = root / 'dist/dify-dmn-integration-0.4.1-source.zip'
+output = root / 'dist/dify-dmn-plugin-0.7.0-source.zip'
 output.parent.mkdir(exist_ok=True)
 files = [line.strip() for line in manifest.read_text().splitlines()
          if line.strip() and not line.startswith('#')]

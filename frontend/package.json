@@ -1,6 +1,29 @@
 {
-  "name":"dify-dmn-matrix", "private":true, "version":"0.4.1", "type":"module",
-  "scripts":{"dev":"vite --host 0.0.0.0", "build":"tsc --noEmit && vite build", "test":"vitest run"},
-  "dependencies":{"react":"19.0.0","react-dom":"19.0.0"},
-  "devDependencies":{"@types/react":"19.0.3","@types/react-dom":"19.0.2","typescript":"5.7.3","vite":"6.1.0","vitest":"3.0.5","jsdom":"26.0.0","@testing-library/react":"16.1.0","@testing-library/jest-dom":"6.6.3","@playwright/test":"1.51.1"}
+  "name": "dify-dmn-matrix",
+  "private": true,
+  "version": "0.7.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "tsc --noEmit && vite build",
+    "test": "vitest run",
+    "build:structure": "tsc --noEmit && python ../scripts/build_structure_viewer.py",
+    "test:structure": "vitest run tests/structure-model.test.ts tests/structure-viewer.test.tsx",
+    "browser:structure": "node tests/structure-browser.cjs"
+  },
+  "dependencies": {
+    "react": "19.0.0",
+    "react-dom": "19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "19.0.3",
+    "@types/react-dom": "19.0.2",
+    "typescript": "5.7.3",
+    "vite": "6.1.0",
+    "vitest": "3.0.5",
+    "jsdom": "26.0.0",
+    "@testing-library/react": "16.1.0",
+    "@testing-library/jest-dom": "6.6.3",
+    "@playwright/test": "1.51.1"
+  }
 }

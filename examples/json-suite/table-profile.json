@@ -1,0 +1,31 @@
+{
+  "format": "json-table-v1",
+  "id": "synthetic-profile",
+  "version": "1",
+  "hit_policy": "FIRST",
+  "rules": [
+    {
+      "id": "known-null",
+      "when": [
+        {
+          "path": [
+            "customer",
+            "confirmed_at"
+          ],
+          "op": "is_null",
+          "value": true
+        }
+      ],
+      "output": {
+        "state": "KNOWN_NULL"
+      }
+    },
+    {
+      "id": "fallback",
+      "when": [],
+      "output": {
+        "state": "OTHER"
+      }
+    }
+  ]
+}

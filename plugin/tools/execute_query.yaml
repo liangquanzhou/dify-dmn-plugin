@@ -1,0 +1,82 @@
+identity:
+  name: execute_query
+  author: liangquanzhou
+  label:
+    en_US: Trusted Read-only Query
+    zh_Hans: 可信只读查询
+description:
+  human:
+    en_US: Execute one pinned read-only capability registered by a trusted host; blocked without a deployment
+    zh_Hans: 执行可信宿主注册并锁定的单个只读能力；无部署时阻断
+  llm: Execute only a host-authorized pinned capability. This independent adapter accepts no URLs, headers, credentials, modules or executable code. Use either the five fixed-node fields or the legacy request_json, never both. The default installation has no production connection.
+parameters:
+  - name: request_json
+    type: any
+    required: false
+    form: form
+    label:
+      en_US: Host-bound capability request
+      zh_Hans: 宿主绑定的查询请求
+    human_description:
+      en_US: Fixed capability_id and definition/query-plan/operation-registry SHA-256 locks plus inputs and online-host context. Hashes alone grant no authority.
+      zh_Hans: 固定 capability_id 和定义、查询计划、操作注册表摘要锁，以及输入和在线宿主上下文；摘要不代表授权
+  - name: definition_bundle_json
+    type: any
+    required: false
+    form: form
+    label:
+      en_US: Fixed architecture-v2 definition
+    human_description:
+      en_US: One reviewed architecture-v2 object or single JSON object string
+  - name: node_ref
+    type: any
+    required: false
+    form: form
+    label:
+      en_US: Fixed QUERY node
+    human_description:
+      en_US: Fixed workflow, phase, step and node identity; never an agent-selected next node
+  - name: expected_definition_sha256
+    type: string
+    required: false
+    form: form
+    label:
+      en_US: Reviewed definition digest
+    human_description:
+      en_US: RFC8785 definition digest from trusted deployment configuration; it is not authorization
+  - name: inputs_json
+    type: any
+    required: false
+    form: llm
+    label:
+      en_US: Bound query inputs
+    human_description:
+      en_US: Parameters and source_refs rebound and checked against independent host evidence
+  - name: execution_context_json
+    type: any
+    required: false
+    form: llm
+    label:
+      en_US: Host-bound node context
+    human_description:
+      en_US: Current run, node, subject, activation, authorization reference and as_of
+output_schema:
+  type: object
+  properties:
+    results:
+      type: object
+    execution_status:
+      type: string
+    output_port:
+      type: string
+    outputs:
+      type: object
+    diagnostics:
+      type: array
+      items:
+        type: object
+    trace:
+      type: object
+extra:
+  python:
+    source: tools/execute_query.py

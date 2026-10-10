@@ -1,0 +1,35 @@
+identity:
+  name: query_local
+  author: liangquanzhou
+  label:
+    en_US: Synthetic Local Query
+    zh_Hans: 本地合成查询
+description:
+  human:
+    en_US: Fixed ticket and order fixtures, always SYNTHETIC and advisory only
+    zh_Hans: 固定工单与订单样本，仅合成演示和建议
+  llm: Run only demo.ticket_lookup or demo.order_lookup synthetic fixtures. Never treat these as real business facts.
+parameters:
+  - name: request_json
+    type: any
+    required: true
+    form: llm
+    label:
+      en_US: Synthetic query request
+      zh_Hans: 合成查询请求
+    human_description:
+      en_US: Object string with capability_id and parameters; no URLs or credentials
+      zh_Hans: 含 capability_id 与 parameters 的对象字符串，不接收 URL 或凭据
+    llm_description: Supply only the fixed demo capability and known ticket_id or order_id. Missing IDs wait; never invent them.
+output_schema:
+  type: object
+  properties:
+    results:
+      type: object
+    status:
+      type: string
+    outputs:
+      type: object
+extra:
+  python:
+    source: tools/query_local.py

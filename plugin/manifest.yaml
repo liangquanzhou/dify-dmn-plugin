@@ -1,18 +1,22 @@
-version: 0.4.1
+version: 0.7.0
 type: plugin
 author: liangquanzhou
 name: dmn_decision
 label:
-  en_US: JSON Decision Table
-  zh_Hans: JSON 决策表
+  en_US: JSON Decision Suite
+  zh_Hans: JSON 决策套件
 description:
-  en_US: Evaluate one custom JSON decision table inside the plugin, without an external service
-  zh_Hans: 在插件内部执行一张自定义 JSON 决策表，无需外部服务
+  en_US: Explicit JSON decision profiles, read-only query adapters, advisory plans and a read-only structure viewer
+  zh_Hans: 独立 JSON 决策 profile、只读查询适配器、轻量计划及只读结构查看器
 icon: icon.svg
 resource:
   memory: 268435456
-  permission: {}
+  permission:
+    endpoint:
+      enabled: true
 plugins:
+  endpoints:
+    - endpoints/structure_viewer.yaml
   tools:
     - provider/dmn.yaml
 meta:

@@ -12,5 +12,5 @@ from dify_plugin.core.plugin_registration import PluginRegistration
 registration = PluginRegistration(DifyPluginEnv())
 assert registration.configuration.name == 'dmn_decision'
 assert list(registration.tools_mapping) == ['dmn']
-assert list(registration.tools_mapping['dmn'][2]) == ['evaluate']
+assert list(registration.tools_mapping['dmn'][2]) == ['evaluate', 'evaluate_json_table', 'evaluate_decision', 'query_local', 'execute_query', 'execute_json_plan']
 print('SDK manifest, provider and Tool classes loaded successfully')

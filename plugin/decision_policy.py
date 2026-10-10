@@ -1,4 +1,4 @@
-"""Additive selection policy over unchanged v0.2.0 condition evaluations."""
+"""Additive selection policies over unchanged v0.2.0 condition evaluations."""
 from typing import Any
 
 from evaluator import TableError
@@ -17,8 +17,15 @@ def apply_policy(table: dict[str, Any], legacy_result: dict[str, Any], policy: s
     true_indexes = [i for i, value in enumerate(evaluations) if value['condition'] is True]
     unknown_indexes = [i for i, value in enumerate(evaluations) if value['condition'] is None]
     all_matches = [rules[i] for i in true_indexes]
+    unique = table['hit_policy'] == 'UNIQUE'
+    conflict = unique and len(true_indexes) > 1
     blockers = []
-    if policy == 'strict':
+    if unique:
+        # Two known true conditions already violate uniqueness. Otherwise any
+        # UNKNOWN could change the decision, regardless of compatible/strict.
+        # Even one known true is not a safe winner while another is unresolved.
+        blockers = [] if conflict else unknown_indexes
+    elif policy == 'strict':
         if table['hit_policy'] == 'COLLECT':
             blockers = unknown_indexes
         else:
@@ -27,14 +34,14 @@ def apply_policy(table: dict[str, Any], legacy_result: dict[str, Any], policy: s
     elif not true_indexes:
         blockers = unknown_indexes
     waiting = bool(blockers)
-    selected = [] if policy == 'strict' and waiting else legacy_result['matched']
-    decision_status = 'waiting_input' if waiting else 'matched' if selected else 'no_match'
+    selected = [] if conflict or (policy == 'strict' or unique) and waiting else legacy_result['matched']
+    decision_status = 'conflict' if conflict else 'waiting_input' if waiting else 'matched' if selected else 'no_match'
     selected_ids = [rule['id'] for rule in selected]
     matched_ids = [rule['id'] for rule in all_matches]
     unknown_ids = [rules[i]['id'] for i in unknown_indexes]
     blocker_ids = [rules[i]['id'] for i in blockers]
     decision_result = {
-        'schema_version': '0.3.0',
+        'schema_version': '0.5.0' if unique else '0.3.0',
         'unknown_policy': policy,
         'decision_status': decision_status,
         'selected_rule_ids': selected_ids,
@@ -45,7 +52,7 @@ def apply_policy(table: dict[str, Any], legacy_result: dict[str, Any], policy: s
     }
     return {
         'result': {'matched': selected, 'evaluations': evaluations},
-        'status': 'waiting_input' if policy == 'strict' and waiting else 'matched' if selected else 'no_match',
+        'status': decision_status if unique else 'waiting_input' if policy == 'strict' and waiting else 'matched' if selected else 'no_match',
         'selected_rule_ids': selected_ids,
         'condition_matched_rule_ids': matched_ids,
         'all_matches': all_matches,

@@ -54,6 +54,14 @@ class InstallerTest(unittest.TestCase):
         self.assertEqual(panel.read_bytes(), original)
         self.assertFalse((self.root / DEST).exists())
 
+    def test_apply_copies_current_unique_component_sources(self):
+        result = self.apply()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        for name in ('model.ts', 'decision-table.tsx', 'decision-table.module.css'):
+            self.assertEqual((self.root / DEST / name).read_bytes(), (HERE.parent / 'src' / name).read_bytes())
+        self.assertIn("'UNIQUE'", (self.root / DEST / 'model.ts').read_text())
+        self.assertIn('UNIQUE 策略说明', (self.root / DEST / 'decision-table.tsx').read_text())
+
     def test_differing_component_is_not_overwritten(self):
         dest = self.root / DEST
         dest.mkdir(parents=True)

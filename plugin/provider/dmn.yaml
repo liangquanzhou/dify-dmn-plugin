@@ -2,16 +2,21 @@ identity:
   author: liangquanzhou
   name: dmn
   label:
-    en_US: JSON Decision Table
-    zh_Hans: JSON 决策表
+    en_US: JSON Decision Suite
+    zh_Hans: JSON 决策套件
   description:
-    en_US: Evaluate one custom JSON decision table inside the plugin
-    zh_Hans: 在插件内部执行一张自定义 JSON 决策表
+    en_US: Explicit JSON decision profiles, read-only query adapters and a structure viewer
+    zh_Hans: 独立 JSON 决策 profile、只读查询适配器及结构查看器
   icon: icon.svg
   tags: [utilities]
 credentials_for_provider: {}
 tools:
   - tools/evaluate.yaml
+  - tools/evaluate_json_table.yaml
+  - tools/evaluate_decision.yaml
+  - tools/query_local.yaml
+  - tools/execute_query.yaml
+  - tools/execute_json_plan.yaml
 extra:
   python:
     source: provider/dmn.py

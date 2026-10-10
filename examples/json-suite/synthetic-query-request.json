@@ -1,0 +1,6 @@
+{
+  "capability_id": "demo.ticket_lookup",
+  "parameters": {
+    "ticket_id": "T-100"
+  }
+}

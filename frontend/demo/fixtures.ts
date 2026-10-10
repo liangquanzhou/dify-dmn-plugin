@@ -26,3 +26,11 @@ export const edge = {
     { id: 'literal keys', when: { eq: ['a.b', 0] }, output: { 'a.b': 0, a: { b: false } }, 载荷: { retained: true } },
   ],
 }
+export const unique = {
+  id: '唯一配送方式', hit_policy: 'UNIQUE', unknown_policy: 'compatible',
+  rules: [
+    { id: '免运费', when: { gte: ['订单金额', 500] }, output: { 配送方式: '快递', 运费: 0 } },
+    { id: '标准运费', when: { lt: ['订单金额', 500] }, output: { 配送方式: '快递', 运费: 12 } },
+    { id: '门店自提', when: { eq: ['自提', true] }, output: { 配送方式: '自提', 运费: 0 } },
+  ],
+}

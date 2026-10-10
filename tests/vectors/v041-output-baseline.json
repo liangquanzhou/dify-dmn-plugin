@@ -1,0 +1,2455 @@
+{
+  "provenance": {
+    "repo": "liangquanzhou/dify-dmn-plugin",
+    "commit": "3e3eca1157f713380a678478bfe218d31ec3056a",
+    "note": "Full 17-field outputs captured from the immutable v0.4.1 evaluator; do not regenerate using the implementation under test."
+  },
+  "cases": [
+    {
+      "id": "FIRST-omitted-partial-match",
+      "parameters": {
+        "table_json": "{\n  \"id\": \"FIRST-omitted-partial-match\",\n  \"hit_policy\": \"FIRST\",\n  \"rules\": [\n    {\n      \"id\": \"a\",\n      \"when\": {\n        \"eq\": [\n          \"a\",\n          1\n        ]\n      },\n      \"output\": {\n        \"chosen\": \"a\",\n        \"raw\": [\n          \"中文\",\n          null,\n          {\n            \"ref\": \"opaque\"\n          }\n        ]\n      }\n    },\n    {\n      \"id\": \"b\",\n      \"when\": {\n        \"eq\": [\n          \"b\",\n          1\n        ]\n      },\n      \"output\": {\n        \"chosen\": \"b\",\n        \"raw\": [\n          \"中文\",\n          null,\n          {\n            \"ref\": \"opaque\"\n          }\n        ]\n      }\n    },\n    {\n      \"id\": \"c\",\n      \"when\": {\n        \"eq\": [\n          \"c\",\n          1\n        ]\n      },\n      \"output\": {\n        \"chosen\": \"c\",\n        \"raw\": [\n          \"中文\",\n          null,\n          {\n            \"ref\": \"opaque\"\n          }\n        ]\n      }\n    },\n    {\n      \"id\": \"d\",\n      \"when\": {\n        \"eq\": [\n          \"d\",\n          1\n        ]\n      },\n      \"output\": {\n        \"chosen\": \"d\",\n        \"raw\": [\n          \"中文\",\n          null,\n          {\n            \"ref\": \"opaque\"\n          }\n        ]\n      }\n    }\n  ]\n}\n",
+        "values_json": "{\"b\": 1, \"d\": 1}"
+      },
+      "expected_outputs": {
+        "result": {
+          "matched": [
+            {
+              "id": "b",
+              "when": {
+                "eq": [
+                  "b",
+                  1
+                ]
+              },
+              "output": {
+                "chosen": "b",
+                "raw": [
+                  "中文",
+                  null,
+                  {
+                    "ref": "opaque"
+                  }
+                ]
+              }
+            }
+          ],
+          "evaluations": [
+            {
+              "rule_id": "a",
+              "condition": null,
+              "read_variables": [
+                "a"
+              ],
+              "supporting_variables": [],
+              "supporting_alternatives": [],
+              "refuting_variables": [],
+              "trace_compressed": false
+            },
+            {
+              "rule_id": "b",
+              "condition": true,
+              "read_variables": [
+                "b"
+              ],
+              "supporting_variables": [
+                "b"
+              ],
+              "supporting_alternatives": [
+                [
+                  "b"
+                ]
+              ],
+              "refuting_variables": [],
+              "trace_compressed": false
+            },
+            {
+              "rule_id": "c",
+              "condition": null,
+              "read_variables": [
+                "c"
+              ],
+              "supporting_variables": [],
+              "supporting_alternatives": [],
+              "refuting_variables": [],
+              "trace_compressed": false
+            },
+            {
+              "rule_id": "d",
+              "condition": true,
+              "read_variables": [
+                "d"
+              ],
+              "supporting_variables": [
+                "d"
+              ],
+              "supporting_alternatives": [
+                [
+                  "d"
+                ]
+              ],
+              "refuting_variables": [],
+              "trace_compressed": false
+            }
+          ]
+        },
+        "result_json": "{\"matched\":[{\"id\":\"b\",\"when\":{\"eq\":[\"b\",1]},\"output\":{\"chosen\":\"b\",\"raw\":[\"中文\",null,{\"ref\":\"opaque\"}]}}],\"evaluations\":[{\"rule_id\":\"a\",\"condition\":null,\"read_variables\":[\"a\"],\"supporting_variables\":[],\"supporting_alternatives\":[],\"refuting_variables\":[],\"trace_compressed\":false},{\"rule_id\":\"b\",\"condition\":true,\"read_variables\":[\"b\"],\"supporting_variables\":[\"b\"],\"supporting_alternatives\":[[\"b\"]],\"refuting_variables\":[],\"trace_compressed\":false},{\"rule_id\":\"c\",\"condition\":null,\"read_variables\":[\"c\"],\"supporting_variables\":[],\"supporting_alternatives\":[],\"refuting_variables\":[],\"trace_compressed\":false},{\"rule_id\":\"d\",\"condition\":true,\"read_variables\":[\"d\"],\"supporting_variables\":[\"d\"],\"supporting_alternatives\":[[\"d\"]],\"refuting_variables\":[],\"trace_compressed\":false}]}",
+        "matched": [
+          {
+            "id": "b",
+            "when": {
+              "eq": [
+                "b",
+                1
+              ]
+            },
+            "output": {
+              "chosen": "b",
+              "raw": [
+                "中文",
+                null,
+                {
+                  "ref": "opaque"
+                }
+              ]
+            }
+          }
+        ],
+        "outputs": [
+          {
+            "chosen": "b",
+            "raw": [
+              "中文",
+              null,
+              {
+                "ref": "opaque"
+              }
+            ]
+          }
+        ],
+        "evaluations": [
+          {
+            "rule_id": "a",
+            "condition": null,
+            "read_variables": [
+              "a"
+            ],
+            "supporting_variables": [],
+            "supporting_alternatives": [],
+            "refuting_variables": [],
+            "trace_compressed": false
+          },
+          {
+            "rule_id": "b",
+            "condition": true,
+            "read_variables": [
+              "b"
+            ],
+            "supporting_variables": [
+              "b"
+            ],
+            "supporting_alternatives": [
+              [
+                "b"
+              ]
+            ],
+            "refuting_variables": [],
+            "trace_compressed": false
+          },
+          {
+            "rule_id": "c",
+            "condition": null,
+            "read_variables": [
+              "c"
+            ],
+            "supporting_variables": [],
+            "supporting_alternatives": [],
+            "refuting_variables": [],
+            "trace_compressed": false
+          },
+          {
+            "rule_id": "d",
+            "condition": true,
+            "read_variables": [
+              "d"
+            ],
+            "supporting_variables": [
+              "d"
+            ],
+            "supporting_alternatives": [
+              [
+                "d"
+              ]
+            ],
+            "refuting_variables": [],
+            "trace_compressed": false
+          }
+        ],
+        "matched_rule_ids": [
+          "b"
+        ],
+        "status": "matched",
+        "table_id": "FIRST-omitted-partial-match",
+        "table_version": "3ba274cee71b8acc8dbd2000ea381050b881be262da776dfb40564f65f747e22",
+        "selected_rule_ids": [
+          "b"
+        ],
+        "condition_matched_rule_ids": [
+          "b",
+          "d"
+        ],
+        "all_matches": [
+          {
+            "id": "b",
+            "when": {
+              "eq": [
+                "b",
+                1
+              ]
+            },
+            "output": {
+              "chosen": "b",
+              "raw": [
+                "中文",
+                null,
+                {
+                  "ref": "opaque"
+                }
+              ]
+            }
+          },
+          {
+            "id": "d",
+            "when": {
+              "eq": [
+                "d",
+                1
+              ]
+            },
+            "output": {
+              "chosen": "d",
+              "raw": [
+                "中文",
+                null,
+                {
+                  "ref": "opaque"
+                }
+              ]
+            }
+          }
+        ],
+        "unknown_rule_ids": [
+          "a",
+          "c"
+        ],
+        "blocking_unknown_rule_ids": [],
+        "decision_status": "matched",
+        "model_sha256": "5ed01370f4bffdb59984526aff73c16ba7c7ed6beedf093f203246c24074553a",
+        "decision_result": {
+          "schema_version": "0.3.0",
+          "unknown_policy": "compatible",
+          "decision_status": "matched",
+          "selected_rule_ids": [
+            "b"
+          ],
+          "condition_matched_rule_ids": [
+            "b",
+            "d"
+          ],
+          "unknown_rule_ids": [
+            "a",
+            "c"
+          ],
+          "blocking_unknown_rule_ids": [],
+          "model_sha256": "5ed01370f4bffdb59984526aff73c16ba7c7ed6beedf093f203246c24074553a"
+        }
+      }
+    },
+    {
+      "id": "FIRST-omitted-all-unknown",
+      "parameters": {
+        "table_json": "{\n  \"id\": \"FIRST-omitted-all-unknown\",\n  \"hit_policy\": \"FIRST\",\n  \"rules\": [\n    {\n      \"id\": \"a\",\n      \"when\": {\n        \"eq\": [\n          \"a\",\n          1\n        ]\n      },\n      \"output\": {\n        \"chosen\": \"a\",\n        \"raw\": [\n          \"中文\",\n          null,\n          {\n            \"ref\": \"opaque\"\n          }\n        ]\n      }\n    },\n    {\n      \"id\": \"b\",\n      \"when\": {\n        \"eq\": [\n          \"b\",\n          1\n        ]\n      },\n      \"output\": {\n        \"chosen\": \"b\",\n        \"raw\": [\n          \"中文\",\n          null,\n          {\n            \"ref\": \"opaque\"\n          }\n        ]\n      }\n    },\n    {\n      \"id\": \"c\",\n      \"when\": {\n        \"eq\": [\n          \"c\",\n          1\n        ]\n      },\n      \"output\": {\n        \"chosen\": \"c\",\n        \"raw\": [\n          \"中文\",\n          null,\n          {\n            \"ref\": \"opaque\"\n          }\n        ]\n      }\n    },\n    {\n      \"id\": \"d\",\n      \"when\": {\n        \"eq\": [\n          \"d\",\n          1\n        ]\n      },\n      \"output\": {\n        \"chosen\": \"d\",\n        \"raw\": [\n          \"中文\",\n          null,\n          {\n            \"ref\": \"opaque\"\n          }\n        ]\n      }\n    }\n  ]\n}\n",
+        "values_json": "{}"
+      },
+      "expected_outputs": {
+        "result": {
+          "matched": [],
+          "evaluations": [
+            {
+              "rule_id": "a",
+              "condition": null,
+              "read_variables": [
+                "a"
+              ],
+              "supporting_variables": [],
+              "supporting_alternatives": [],
+              "refuting_variables": [],
+              "trace_compressed": false
+            },
+            {
+              "rule_id": "b",
+              "condition": null,
+              "read_variables": [
+                "b"
+              ],
+              "supporting_variables": [],
+              "supporting_alternatives": [],
+              "refuting_variables": [],
+              "trace_compressed": false
+            },
+            {
+              "rule_id": "c",
+              "condition": null,
+              "read_variables": [
+                "c"
+              ],
+              "supporting_variables": [],
+              "supporting_alternatives": [],
+              "refuting_variables": [],
+              "trace_compressed": false
+            },
+            {
+              "rule_id": "d",
+              "condition": null,
+              "read_variables": [
+                "d"
+              ],
+              "supporting_variables": [],
+              "supporting_alternatives": [],
+              "refuting_variables": [],
+              "trace_compressed": false
+            }
+          ]
+        },
+        "result_json": "{\"matched\":[],\"evaluations\":[{\"rule_id\":\"a\",\"condition\":null,\"read_variables\":[\"a\"],\"supporting_variables\":[],\"supporting_alternatives\":[],\"refuting_variables\":[],\"trace_compressed\":false},{\"rule_id\":\"b\",\"condition\":null,\"read_variables\":[\"b\"],\"supporting_variables\":[],\"supporting_alternatives\":[],\"refuting_variables\":[],\"trace_compressed\":false},{\"rule_id\":\"c\",\"condition\":null,\"read_variables\":[\"c\"],\"supporting_variables\":[],\"supporting_alternatives\":[],\"refuting_variables\":[],\"trace_compressed\":false},{\"rule_id\":\"d\",\"condition\":null,\"read_variables\":[\"d\"],\"supporting_variables\":[],\"supporting_alternatives\":[],\"refuting_variables\":[],\"trace_compressed\":false}]}",
+        "matched": [],
+        "outputs": [],
+        "evaluations": [
+          {
+            "rule_id": "a",
+            "condition": null,
+            "read_variables": [
+              "a"
+            ],
+            "supporting_variables": [],
+            "supporting_alternatives": [],
+            "refuting_variables": [],
+            "trace_compressed": false
+          },
+          {
+            "rule_id": "b",
+            "condition": null,
+            "read_variables": [
+              "b"
+            ],
+            "supporting_variables": [],
+            "supporting_alternatives": [],
+            "refuting_variables": [],
+            "trace_compressed": false
+          },
+          {
+            "rule_id": "c",
+            "condition": null,
+            "read_variables": [
+              "c"
+            ],
+            "supporting_variables": [],
+            "supporting_alternatives": [],
+            "refuting_variables": [],
+            "trace_compressed": false
+          },
+          {
+            "rule_id": "d",
+            "condition": null,
+            "read_variables": [
+              "d"
+            ],
+            "supporting_variables": [],
+            "supporting_alternatives": [],
+            "refuting_variables": [],
+            "trace_compressed": false
+          }
+        ],
+        "matched_rule_ids": [],
+        "status": "no_match",
+        "table_id": "FIRST-omitted-all-unknown",
+        "table_version": "f7730d18e5fa5ecbaa409ba4d723aa3fbf112f8851d2cf414c4942a3fc81f728",
+        "selected_rule_ids": [],
+        "condition_matched_rule_ids": [],
+        "all_matches": [],
+        "unknown_rule_ids": [
+          "a",
+          "b",
+          "c",
+          "d"
+        ],
+        "blocking_unknown_rule_ids": [
+          "a",
+          "b",
+          "c",
+          "d"
+        ],
+        "decision_status": "waiting_input",
+        "model_sha256": "6bedf92c140eb2af9819ad459fb49745607a0eb4c67ad0efaae1b031cae2542c",
+        "decision_result": {
+          "schema_version": "0.3.0",
+          "unknown_policy": "compatible",
+          "decision_status": "waiting_input",
+          "selected_rule_ids": [],
+          "condition_matched_rule_ids": [],
+          "unknown_rule_ids": [
+            "a",
+            "b",
+            "c",
+            "d"
+          ],
+          "blocking_unknown_rule_ids": [
+            "a",
+            "b",
+            "c",
+            "d"
+          ],
+          "model_sha256": "6bedf92c140eb2af9819ad459fb49745607a0eb4c67ad0efaae1b031cae2542c"
+        }
+      }
+    },
+    {
+      "id": "FIRST-compatible-partial-match",
+      "parameters": {
+        "table_json": "{\n  \"id\": \"FIRST-compatible-partial-match\",\n  \"hit_policy\": \"FIRST\",\n  \"rules\": [\n    {\n      \"id\": \"a\",\n      \"when\": {\n        \"eq\": [\n          \"a\",\n          1\n        ]\n      },\n      \"output\": {\n        \"chosen\": \"a\",\n        \"raw\": [\n          \"中文\",\n          null,\n          {\n            \"ref\": \"opaque\"\n          }\n        ]\n      }\n    },\n    {\n      \"id\": \"b\",\n      \"when\": {\n        \"eq\": [\n          \"b\",\n          1\n        ]\n      },\n      \"output\": {\n        \"chosen\": \"b\",\n        \"raw\": [\n          \"中文\",\n          null,\n          {\n            \"ref\": \"opaque\"\n          }\n        ]\n      }\n    },\n    {\n      \"id\": \"c\",\n      \"when\": {\n        \"eq\": [\n          \"c\",\n          1\n        ]\n      },\n      \"output\": {\n        \"chosen\": \"c\",\n        \"raw\": [\n          \"中文\",\n          null,\n          {\n            \"ref\": \"opaque\"\n          }\n        ]\n      }\n    },\n    {\n      \"id\": \"d\",\n      \"when\": {\n        \"eq\": [\n          \"d\",\n          1\n        ]\n      },\n      \"output\": {\n        \"chosen\": \"d\",\n        \"raw\": [\n          \"中文\",\n          null,\n          {\n            \"ref\": \"opaque\"\n          }\n        ]\n      }\n    }\n  ],\n  \"unknown_policy\": \"compatible\"\n}\n",
+        "values_json": "{\"b\": 1, \"d\": 1}"
+      },
+      "expected_outputs": {
+        "result": {
+          "matched": [
+            {
+              "id": "b",
+              "when": {
+                "eq": [
+                  "b",
+                  1
+                ]
+              },
+              "output": {
+                "chosen": "b",
+                "raw": [
+                  "中文",
+                  null,
+                  {
+                    "ref": "opaque"
+                  }
+                ]
+              }
+            }
+          ],
+          "evaluations": [
+            {
+              "rule_id": "a",
+              "condition": null,
+              "read_variables": [
+                "a"
+              ],
+              "supporting_variables": [],
+              "supporting_alternatives": [],
+              "refuting_variables": [],
+              "trace_compressed": false
+            },
+            {
+              "rule_id": "b",
+              "condition": true,
+              "read_variables": [
+                "b"
+              ],
+              "supporting_variables": [
+                "b"
+              ],
+              "supporting_alternatives": [
+                [
+                  "b"
+                ]
+              ],
+              "refuting_variables": [],
+              "trace_compressed": false
+            },
+            {
+              "rule_id": "c",
+              "condition": null,
+              "read_variables": [
+                "c"
+              ],
+              "supporting_variables": [],
+              "supporting_alternatives": [],
+              "refuting_variables": [],
+              "trace_compressed": false
+            },
+            {
+              "rule_id": "d",
+              "condition": true,
+              "read_variables": [
+                "d"
+              ],
+              "supporting_variables": [
+                "d"
+              ],
+              "supporting_alternatives": [
+                [
+                  "d"
+                ]
+              ],
+              "refuting_variables": [],
+              "trace_compressed": false
+            }
+          ]
+        },
+        "result_json": "{\"matched\":[{\"id\":\"b\",\"when\":{\"eq\":[\"b\",1]},\"output\":{\"chosen\":\"b\",\"raw\":[\"中文\",null,{\"ref\":\"opaque\"}]}}],\"evaluations\":[{\"rule_id\":\"a\",\"condition\":null,\"read_variables\":[\"a\"],\"supporting_variables\":[],\"supporting_alternatives\":[],\"refuting_variables\":[],\"trace_compressed\":false},{\"rule_id\":\"b\",\"condition\":true,\"read_variables\":[\"b\"],\"supporting_variables\":[\"b\"],\"supporting_alternatives\":[[\"b\"]],\"refuting_variables\":[],\"trace_compressed\":false},{\"rule_id\":\"c\",\"condition\":null,\"read_variables\":[\"c\"],\"supporting_variables\":[],\"supporting_alternatives\":[],\"refuting_variables\":[],\"trace_compressed\":false},{\"rule_id\":\"d\",\"condition\":true,\"read_variables\":[\"d\"],\"supporting_variables\":[\"d\"],\"supporting_alternatives\":[[\"d\"]],\"refuting_variables\":[],\"trace_compressed\":false}]}",
+        "matched": [
+          {
+            "id": "b",
+            "when": {
+              "eq": [
+                "b",
+                1
+              ]
+            },
+            "output": {
+              "chosen": "b",
+              "raw": [
+                "中文",
+                null,
+                {
+                  "ref": "opaque"
+                }
+              ]
+            }
+          }
+        ],
+        "outputs": [
+          {
+            "chosen": "b",
+            "raw": [
+              "中文",
+              null,
+              {
+                "ref": "opaque"
+              }
+            ]
+          }
+        ],
+        "evaluations": [
+          {
+            "rule_id": "a",
+            "condition": null,
+            "read_variables": [
+              "a"
+            ],
+            "supporting_variables": [],
+            "supporting_alternatives": [],
+            "refuting_variables": [],
+            "trace_compressed": false
+          },
+          {
+            "rule_id": "b",
+            "condition": true,
+            "read_variables": [
+              "b"
+            ],
+            "supporting_variables": [
+              "b"
+            ],
+            "supporting_alternatives": [
+              [
+                "b"
+              ]
+            ],
+            "refuting_variables": [],
+            "trace_compressed": false
+          },
+          {
+            "rule_id": "c",
+            "condition": null,
+            "read_variables": [
+              "c"
+            ],
+            "supporting_variables": [],
+            "supporting_alternatives": [],
+            "refuting_variables": [],
+            "trace_compressed": false
+          },
+          {
+            "rule_id": "d",
+            "condition": true,
+            "read_variables": [
+              "d"
+            ],
+            "supporting_variables": [
+              "d"
+            ],
+            "supporting_alternatives": [
+              [
+                "d"
+              ]
+            ],
+            "refuting_variables": [],
+            "trace_compressed": false
+          }
+        ],
+        "matched_rule_ids": [
+          "b"
+        ],
+        "status": "matched",
+        "table_id": "FIRST-compatible-partial-match",
+        "table_version": "8d3576fafb52a579609bd83d389fd23f396090fead1f343d1e3cc1a8a74852aa",
+        "selected_rule_ids": [
+          "b"
+        ],
+        "condition_matched_rule_ids": [
+          "b",
+          "d"
+        ],
+        "all_matches": [
+          {
+            "id": "b",
+            "when": {
+              "eq": [
+                "b",
+                1
+              ]
+            },
+            "output": {
+              "chosen": "b",
+              "raw": [
+                "中文",
+                null,
+                {
+                  "ref": "opaque"
+                }
+              ]
+            }
+          },
+          {
+            "id": "d",
+            "when": {
+              "eq": [
+                "d",
+                1
+              ]
+            },
+            "output": {
+              "chosen": "d",
+              "raw": [
+                "中文",
+                null,
+                {
+                  "ref": "opaque"
+                }
+              ]
+            }
+          }
+        ],
+        "unknown_rule_ids": [
+          "a",
+          "c"
+        ],
+        "blocking_unknown_rule_ids": [],
+        "decision_status": "matched",
+        "model_sha256": "12200ebba98b6b4e94b23d7fe45faaf1a557b0a97e7847a7c28d8eb4af18fe9c",
+        "decision_result": {
+          "schema_version": "0.3.0",
+          "unknown_policy": "compatible",
+          "decision_status": "matched",
+          "selected_rule_ids": [
+            "b"
+          ],
+          "condition_matched_rule_ids": [
+            "b",
+            "d"
+          ],
+          "unknown_rule_ids": [
+            "a",
+            "c"
+          ],
+          "blocking_unknown_rule_ids": [],
+          "model_sha256": "12200ebba98b6b4e94b23d7fe45faaf1a557b0a97e7847a7c28d8eb4af18fe9c"
+        }
+      }
+    },
+    {
+      "id": "FIRST-compatible-all-unknown",
+      "parameters": {
+        "table_json": "{\n  \"id\": \"FIRST-compatible-all-unknown\",\n  \"hit_policy\": \"FIRST\",\n  \"rules\": [\n    {\n      \"id\": \"a\",\n      \"when\": {\n        \"eq\": [\n          \"a\",\n          1\n        ]\n      },\n      \"output\": {\n        \"chosen\": \"a\",\n        \"raw\": [\n          \"中文\",\n          null,\n          {\n            \"ref\": \"opaque\"\n          }\n        ]\n      }\n    },\n    {\n      \"id\": \"b\",\n      \"when\": {\n        \"eq\": [\n          \"b\",\n          1\n        ]\n      },\n      \"output\": {\n        \"chosen\": \"b\",\n        \"raw\": [\n          \"中文\",\n          null,\n          {\n            \"ref\": \"opaque\"\n          }\n        ]\n      }\n    },\n    {\n      \"id\": \"c\",\n      \"when\": {\n        \"eq\": [\n          \"c\",\n          1\n        ]\n      },\n      \"output\": {\n        \"chosen\": \"c\",\n        \"raw\": [\n          \"中文\",\n          null,\n          {\n            \"ref\": \"opaque\"\n          }\n        ]\n      }\n    },\n    {\n      \"id\": \"d\",\n      \"when\": {\n        \"eq\": [\n          \"d\",\n          1\n        ]\n      },\n      \"output\": {\n        \"chosen\": \"d\",\n        \"raw\": [\n          \"中文\",\n          null,\n          {\n            \"ref\": \"opaque\"\n          }\n        ]\n      }\n    }\n  ],\n  \"unknown_policy\": \"compatible\"\n}\n",
+        "values_json": "{}"
+      },
+      "expected_outputs": {
+        "result": {
+          "matched": [],
+          "evaluations": [
+            {
+              "rule_id": "a",
+              "condition": null,
+              "read_variables": [
+                "a"
+              ],
+              "supporting_variables": [],
+              "supporting_alternatives": [],
+              "refuting_variables": [],
+              "trace_compressed": false
+            },
+            {
+              "rule_id": "b",
+              "condition": null,
+              "read_variables": [
+                "b"
+              ],
+              "supporting_variables": [],
+              "supporting_alternatives": [],
+              "refuting_variables": [],
+              "trace_compressed": false
+            },
+            {
+              "rule_id": "c",
+              "condition": null,
+              "read_variables": [
+                "c"
+              ],
+              "supporting_variables": [],
+              "supporting_alternatives": [],
+              "refuting_variables": [],
+              "trace_compressed": false
+            },
+            {
+              "rule_id": "d",
+              "condition": null,
+              "read_variables": [
+                "d"
+              ],
+              "supporting_variables": [],
+              "supporting_alternatives": [],
+              "refuting_variables": [],
+              "trace_compressed": false
+            }
+          ]
+        },
+        "result_json": "{\"matched\":[],\"evaluations\":[{\"rule_id\":\"a\",\"condition\":null,\"read_variables\":[\"a\"],\"supporting_variables\":[],\"supporting_alternatives\":[],\"refuting_variables\":[],\"trace_compressed\":false},{\"rule_id\":\"b\",\"condition\":null,\"read_variables\":[\"b\"],\"supporting_variables\":[],\"supporting_alternatives\":[],\"refuting_variables\":[],\"trace_compressed\":false},{\"rule_id\":\"c\",\"condition\":null,\"read_variables\":[\"c\"],\"supporting_variables\":[],\"supporting_alternatives\":[],\"refuting_variables\":[],\"trace_compressed\":false},{\"rule_id\":\"d\",\"condition\":null,\"read_variables\":[\"d\"],\"supporting_variables\":[],\"supporting_alternatives\":[],\"refuting_variables\":[],\"trace_compressed\":false}]}",
+        "matched": [],
+        "outputs": [],
+        "evaluations": [
+          {
+            "rule_id": "a",
+            "condition": null,
+            "read_variables": [
+              "a"
+            ],
+            "supporting_variables": [],
+            "supporting_alternatives": [],
+            "refuting_variables": [],
+            "trace_compressed": false
+          },
+          {
+            "rule_id": "b",
+            "condition": null,
+            "read_variables": [
+              "b"
+            ],
+            "supporting_variables": [],
+            "supporting_alternatives": [],
+            "refuting_variables": [],
+            "trace_compressed": false
+          },
+          {
+            "rule_id": "c",
+            "condition": null,
+            "read_variables": [
+              "c"
+            ],
+            "supporting_variables": [],
+            "supporting_alternatives": [],
+            "refuting_variables": [],
+            "trace_compressed": false
+          },
+          {
+            "rule_id": "d",
+            "condition": null,
+            "read_variables": [
+              "d"
+            ],
+            "supporting_variables": [],
+            "supporting_alternatives": [],
+            "refuting_variables": [],
+            "trace_compressed": false
+          }
+        ],
+        "matched_rule_ids": [],
+        "status": "no_match",
+        "table_id": "FIRST-compatible-all-unknown",
+        "table_version": "c4f7b78f0971cf49bfc25c3614106396e8be7b976746913ecef5f61aaa5a51af",
+        "selected_rule_ids": [],
+        "condition_matched_rule_ids": [],
+        "all_matches": [],
+        "unknown_rule_ids": [
+          "a",
+          "b",
+          "c",
+          "d"
+        ],
+        "blocking_unknown_rule_ids": [
+          "a",
+          "b",
+          "c",
+          "d"
+        ],
+        "decision_status": "waiting_input",
+        "model_sha256": "dc1c7d8588e9b5df345c3b9eb8e008fba5d0d053f3279fb68f0b126f1f0adc7e",
+        "decision_result": {
+          "schema_version": "0.3.0",
+          "unknown_policy": "compatible",
+          "decision_status": "waiting_input",
+          "selected_rule_ids": [],
+          "condition_matched_rule_ids": [],
+          "unknown_rule_ids": [
+            "a",
+            "b",
+            "c",
+            "d"
+          ],
+          "blocking_unknown_rule_ids": [
+            "a",
+            "b",
+            "c",
+            "d"
+          ],
+          "model_sha256": "dc1c7d8588e9b5df345c3b9eb8e008fba5d0d053f3279fb68f0b126f1f0adc7e"
+        }
+      }
+    },
+    {
+      "id": "FIRST-strict-partial-match",
+      "parameters": {
+        "table_json": "{\n  \"id\": \"FIRST-strict-partial-match\",\n  \"hit_policy\": \"FIRST\",\n  \"rules\": [\n    {\n      \"id\": \"a\",\n      \"when\": {\n        \"eq\": [\n          \"a\",\n          1\n        ]\n      },\n      \"output\": {\n        \"chosen\": \"a\",\n        \"raw\": [\n          \"中文\",\n          null,\n          {\n            \"ref\": \"opaque\"\n          }\n        ]\n      }\n    },\n    {\n      \"id\": \"b\",\n      \"when\": {\n        \"eq\": [\n          \"b\",\n          1\n        ]\n      },\n      \"output\": {\n        \"chosen\": \"b\",\n        \"raw\": [\n          \"中文\",\n          null,\n          {\n            \"ref\": \"opaque\"\n          }\n        ]\n      }\n    },\n    {\n      \"id\": \"c\",\n      \"when\": {\n        \"eq\": [\n          \"c\",\n          1\n        ]\n      },\n      \"output\": {\n        \"chosen\": \"c\",\n        \"raw\": [\n          \"中文\",\n          null,\n          {\n            \"ref\": \"opaque\"\n          }\n        ]\n      }\n    },\n    {\n      \"id\": \"d\",\n      \"when\": {\n        \"eq\": [\n          \"d\",\n          1\n        ]\n      },\n      \"output\": {\n        \"chosen\": \"d\",\n        \"raw\": [\n          \"中文\",\n          null,\n          {\n            \"ref\": \"opaque\"\n          }\n        ]\n      }\n    }\n  ],\n  \"unknown_policy\": \"strict\"\n}\n",
+        "values_json": "{\"b\": 1, \"d\": 1}"
+      },
+      "expected_outputs": {
+        "result": {
+          "matched": [],
+          "evaluations": [
+            {
+              "rule_id": "a",
+              "condition": null,
+              "read_variables": [
+                "a"
+              ],
+              "supporting_variables": [],
+              "supporting_alternatives": [],
+              "refuting_variables": [],
+              "trace_compressed": false
+            },
+            {
+              "rule_id": "b",
+              "condition": true,
+              "read_variables": [
+                "b"
+              ],
+              "supporting_variables": [
+                "b"
+              ],
+              "supporting_alternatives": [
+                [
+                  "b"
+                ]
+              ],
+              "refuting_variables": [],
+              "trace_compressed": false
+            },
+            {
+              "rule_id": "c",
+              "condition": null,
+              "read_variables": [
+                "c"
+              ],
+              "supporting_variables": [],
+              "supporting_alternatives": [],
+              "refuting_variables": [],
+              "trace_compressed": false
+            },
+            {
+              "rule_id": "d",
+              "condition": true,
+              "read_variables": [
+                "d"
+              ],
+              "supporting_variables": [
+                "d"
+              ],
+              "supporting_alternatives": [
+                [
+                  "d"
+                ]
+              ],
+              "refuting_variables": [],
+              "trace_compressed": false
+            }
+          ]
+        },
+        "result_json": "{\"matched\":[],\"evaluations\":[{\"rule_id\":\"a\",\"condition\":null,\"read_variables\":[\"a\"],\"supporting_variables\":[],\"supporting_alternatives\":[],\"refuting_variables\":[],\"trace_compressed\":false},{\"rule_id\":\"b\",\"condition\":true,\"read_variables\":[\"b\"],\"supporting_variables\":[\"b\"],\"supporting_alternatives\":[[\"b\"]],\"refuting_variables\":[],\"trace_compressed\":false},{\"rule_id\":\"c\",\"condition\":null,\"read_variables\":[\"c\"],\"supporting_variables\":[],\"supporting_alternatives\":[],\"refuting_variables\":[],\"trace_compressed\":false},{\"rule_id\":\"d\",\"condition\":true,\"read_variables\":[\"d\"],\"supporting_variables\":[\"d\"],\"supporting_alternatives\":[[\"d\"]],\"refuting_variables\":[],\"trace_compressed\":false}]}",
+        "matched": [],
+        "outputs": [],
+        "evaluations": [
+          {
+            "rule_id": "a",
+            "condition": null,
+            "read_variables": [
+              "a"
+            ],
+            "supporting_variables": [],
+            "supporting_alternatives": [],
+            "refuting_variables": [],
+            "trace_compressed": false
+          },
+          {
+            "rule_id": "b",
+            "condition": true,
+            "read_variables": [
+              "b"
+            ],
+            "supporting_variables": [
+              "b"
+            ],
+            "supporting_alternatives": [
+              [
+                "b"
+              ]
+            ],
+            "refuting_variables": [],
+            "trace_compressed": false
+          },
+          {
+            "rule_id": "c",
+            "condition": null,
+            "read_variables": [
+              "c"
+            ],
+            "supporting_variables": [],
+            "supporting_alternatives": [],
+            "refuting_variables": [],
+            "trace_compressed": false
+          },
+          {
+            "rule_id": "d",
+            "condition": true,
+            "read_variables": [
+              "d"
+            ],
+            "supporting_variables": [
+              "d"
+            ],
+            "supporting_alternatives": [
+              [
+                "d"
+              ]
+            ],
+            "refuting_variables": [],
+            "trace_compressed": false
+          }
+        ],
+        "matched_rule_ids": [],
+        "status": "waiting_input",
+        "table_id": "FIRST-strict-partial-match",
+        "table_version": "7cddbce71b10c664af33cca8ab10fe2e1054b6553717aa1cbc7d2ea8b59a47b7",
+        "selected_rule_ids": [],
+        "condition_matched_rule_ids": [
+          "b",
+          "d"
+        ],
+        "all_matches": [
+          {
+            "id": "b",
+            "when": {
+              "eq": [
+                "b",
+                1
+              ]
+            },
+            "output": {
+              "chosen": "b",
+              "raw": [
+                "中文",
+                null,
+                {
+                  "ref": "opaque"
+                }
+              ]
+            }
+          },
+          {
+            "id": "d",
+            "when": {
+              "eq": [
+                "d",
+                1
+              ]
+            },
+            "output": {
+              "chosen": "d",
+              "raw": [
+                "中文",
+                null,
+                {
+                  "ref": "opaque"
+                }
+              ]
+            }
+          }
+        ],
+        "unknown_rule_ids": [
+          "a",
+          "c"
+        ],
+        "blocking_unknown_rule_ids": [
+          "a"
+        ],
+        "decision_status": "waiting_input",
+        "model_sha256": "d8cf5606f219b4c75f3651058403e364023a8fb7c148e45c7e41ae4348ba1b99",
+        "decision_result": {
+          "schema_version": "0.3.0",
+          "unknown_policy": "strict",
+          "decision_status": "waiting_input",
+          "selected_rule_ids": [],
+          "condition_matched_rule_ids": [
+            "b",
+            "d"
+          ],
+          "unknown_rule_ids": [
+            "a",
+            "c"
+          ],
+          "blocking_unknown_rule_ids": [
+            "a"
+          ],
+          "model_sha256": "d8cf5606f219b4c75f3651058403e364023a8fb7c148e45c7e41ae4348ba1b99"
+        }
+      }
+    },
+    {
+      "id": "FIRST-strict-all-unknown",
+      "parameters": {
+        "table_json": "{\n  \"id\": \"FIRST-strict-all-unknown\",\n  \"hit_policy\": \"FIRST\",\n  \"rules\": [\n    {\n      \"id\": \"a\",\n      \"when\": {\n        \"eq\": [\n          \"a\",\n          1\n        ]\n      },\n      \"output\": {\n        \"chosen\": \"a\",\n        \"raw\": [\n          \"中文\",\n          null,\n          {\n            \"ref\": \"opaque\"\n          }\n        ]\n      }\n    },\n    {\n      \"id\": \"b\",\n      \"when\": {\n        \"eq\": [\n          \"b\",\n          1\n        ]\n      },\n      \"output\": {\n        \"chosen\": \"b\",\n        \"raw\": [\n          \"中文\",\n          null,\n          {\n            \"ref\": \"opaque\"\n          }\n        ]\n      }\n    },\n    {\n      \"id\": \"c\",\n      \"when\": {\n        \"eq\": [\n          \"c\",\n          1\n        ]\n      },\n      \"output\": {\n        \"chosen\": \"c\",\n        \"raw\": [\n          \"中文\",\n          null,\n          {\n            \"ref\": \"opaque\"\n          }\n        ]\n      }\n    },\n    {\n      \"id\": \"d\",\n      \"when\": {\n        \"eq\": [\n          \"d\",\n          1\n        ]\n      },\n      \"output\": {\n        \"chosen\": \"d\",\n        \"raw\": [\n          \"中文\",\n          null,\n          {\n            \"ref\": \"opaque\"\n          }\n        ]\n      }\n    }\n  ],\n  \"unknown_policy\": \"strict\"\n}\n",
+        "values_json": "{}"
+      },
+      "expected_outputs": {
+        "result": {
+          "matched": [],
+          "evaluations": [
+            {
+              "rule_id": "a",
+              "condition": null,
+              "read_variables": [
+                "a"
+              ],
+              "supporting_variables": [],
+              "supporting_alternatives": [],
+              "refuting_variables": [],
+              "trace_compressed": false
+            },
+            {
+              "rule_id": "b",
+              "condition": null,
+              "read_variables": [
+                "b"
+              ],
+              "supporting_variables": [],
+              "supporting_alternatives": [],
+              "refuting_variables": [],
+              "trace_compressed": false
+            },
+            {
+              "rule_id": "c",
+              "condition": null,
+              "read_variables": [
+                "c"
+              ],
+              "supporting_variables": [],
+              "supporting_alternatives": [],
+              "refuting_variables": [],
+              "trace_compressed": false
+            },
+            {
+              "rule_id": "d",
+              "condition": null,
+              "read_variables": [
+                "d"
+              ],
+              "supporting_variables": [],
+              "supporting_alternatives": [],
+              "refuting_variables": [],
+              "trace_compressed": false
+            }
+          ]
+        },
+        "result_json": "{\"matched\":[],\"evaluations\":[{\"rule_id\":\"a\",\"condition\":null,\"read_variables\":[\"a\"],\"supporting_variables\":[],\"supporting_alternatives\":[],\"refuting_variables\":[],\"trace_compressed\":false},{\"rule_id\":\"b\",\"condition\":null,\"read_variables\":[\"b\"],\"supporting_variables\":[],\"supporting_alternatives\":[],\"refuting_variables\":[],\"trace_compressed\":false},{\"rule_id\":\"c\",\"condition\":null,\"read_variables\":[\"c\"],\"supporting_variables\":[],\"supporting_alternatives\":[],\"refuting_variables\":[],\"trace_compressed\":false},{\"rule_id\":\"d\",\"condition\":null,\"read_variables\":[\"d\"],\"supporting_variables\":[],\"supporting_alternatives\":[],\"refuting_variables\":[],\"trace_compressed\":false}]}",
+        "matched": [],
+        "outputs": [],
+        "evaluations": [
+          {
+            "rule_id": "a",
+            "condition": null,
+            "read_variables": [
+              "a"
+            ],
+            "supporting_variables": [],
+            "supporting_alternatives": [],
+            "refuting_variables": [],
+            "trace_compressed": false
+          },
+          {
+            "rule_id": "b",
+            "condition": null,
+            "read_variables": [
+              "b"
+            ],
+            "supporting_variables": [],
+            "supporting_alternatives": [],
+            "refuting_variables": [],
+            "trace_compressed": false
+          },
+          {
+            "rule_id": "c",
+            "condition": null,
+            "read_variables": [
+              "c"
+            ],
+            "supporting_variables": [],
+            "supporting_alternatives": [],
+            "refuting_variables": [],
+            "trace_compressed": false
+          },
+          {
+            "rule_id": "d",
+            "condition": null,
+            "read_variables": [
+              "d"
+            ],
+            "supporting_variables": [],
+            "supporting_alternatives": [],
+            "refuting_variables": [],
+            "trace_compressed": false
+          }
+        ],
+        "matched_rule_ids": [],
+        "status": "waiting_input",
+        "table_id": "FIRST-strict-all-unknown",
+        "table_version": "9e21696eaa39a867061f4d37f78bfc1ace0bd7446757e9b9f04f0a3568b84a74",
+        "selected_rule_ids": [],
+        "condition_matched_rule_ids": [],
+        "all_matches": [],
+        "unknown_rule_ids": [
+          "a",
+          "b",
+          "c",
+          "d"
+        ],
+        "blocking_unknown_rule_ids": [
+          "a",
+          "b",
+          "c",
+          "d"
+        ],
+        "decision_status": "waiting_input",
+        "model_sha256": "772ad427203ecf493757fa2be226f9e9eed742a0874be456cd706fd44d41345e",
+        "decision_result": {
+          "schema_version": "0.3.0",
+          "unknown_policy": "strict",
+          "decision_status": "waiting_input",
+          "selected_rule_ids": [],
+          "condition_matched_rule_ids": [],
+          "unknown_rule_ids": [
+            "a",
+            "b",
+            "c",
+            "d"
+          ],
+          "blocking_unknown_rule_ids": [
+            "a",
+            "b",
+            "c",
+            "d"
+          ],
+          "model_sha256": "772ad427203ecf493757fa2be226f9e9eed742a0874be456cd706fd44d41345e"
+        }
+      }
+    },
+    {
+      "id": "COLLECT-omitted-partial-match",
+      "parameters": {
+        "table_json": "{\n  \"id\": \"COLLECT-omitted-partial-match\",\n  \"hit_policy\": \"COLLECT\",\n  \"rules\": [\n    {\n      \"id\": \"a\",\n      \"when\": {\n        \"eq\": [\n          \"a\",\n          1\n        ]\n      },\n      \"output\": {\n        \"chosen\": \"a\",\n        \"raw\": [\n          \"中文\",\n          null,\n          {\n            \"ref\": \"opaque\"\n          }\n        ]\n      }\n    },\n    {\n      \"id\": \"b\",\n      \"when\": {\n        \"eq\": [\n          \"b\",\n          1\n        ]\n      },\n      \"output\": {\n        \"chosen\": \"b\",\n        \"raw\": [\n          \"中文\",\n          null,\n          {\n            \"ref\": \"opaque\"\n          }\n        ]\n      }\n    },\n    {\n      \"id\": \"c\",\n      \"when\": {\n        \"eq\": [\n          \"c\",\n          1\n        ]\n      },\n      \"output\": {\n        \"chosen\": \"c\",\n        \"raw\": [\n          \"中文\",\n          null,\n          {\n            \"ref\": \"opaque\"\n          }\n        ]\n      }\n    },\n    {\n      \"id\": \"d\",\n      \"when\": {\n        \"eq\": [\n          \"d\",\n          1\n        ]\n      },\n      \"output\": {\n        \"chosen\": \"d\",\n        \"raw\": [\n          \"中文\",\n          null,\n          {\n            \"ref\": \"opaque\"\n          }\n        ]\n      }\n    }\n  ]\n}\n",
+        "values_json": "{\"b\": 1, \"d\": 1}"
+      },
+      "expected_outputs": {
+        "result": {
+          "matched": [
+            {
+              "id": "b",
+              "when": {
+                "eq": [
+                  "b",
+                  1
+                ]
+              },
+              "output": {
+                "chosen": "b",
+                "raw": [
+                  "中文",
+                  null,
+                  {
+                    "ref": "opaque"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "d",
+              "when": {
+                "eq": [
+                  "d",
+                  1
+                ]
+              },
+              "output": {
+                "chosen": "d",
+                "raw": [
+                  "中文",
+                  null,
+                  {
+                    "ref": "opaque"
+                  }
+                ]
+              }
+            }
+          ],
+          "evaluations": [
+            {
+              "rule_id": "a",
+              "condition": null,
+              "read_variables": [
+                "a"
+              ],
+              "supporting_variables": [],
+              "supporting_alternatives": [],
+              "refuting_variables": [],
+              "trace_compressed": false
+            },
+            {
+              "rule_id": "b",
+              "condition": true,
+              "read_variables": [
+                "b"
+              ],
+              "supporting_variables": [
+                "b"
+              ],
+              "supporting_alternatives": [
+                [
+                  "b"
+                ]
+              ],
+              "refuting_variables": [],
+              "trace_compressed": false
+            },
+            {
+              "rule_id": "c",
+              "condition": null,
+              "read_variables": [
+                "c"
+              ],
+              "supporting_variables": [],
+              "supporting_alternatives": [],
+              "refuting_variables": [],
+              "trace_compressed": false
+            },
+            {
+              "rule_id": "d",
+              "condition": true,
+              "read_variables": [
+                "d"
+              ],
+              "supporting_variables": [
+                "d"
+              ],
+              "supporting_alternatives": [
+                [
+                  "d"
+                ]
+              ],
+              "refuting_variables": [],
+              "trace_compressed": false
+            }
+          ]
+        },
+        "result_json": "{\"matched\":[{\"id\":\"b\",\"when\":{\"eq\":[\"b\",1]},\"output\":{\"chosen\":\"b\",\"raw\":[\"中文\",null,{\"ref\":\"opaque\"}]}},{\"id\":\"d\",\"when\":{\"eq\":[\"d\",1]},\"output\":{\"chosen\":\"d\",\"raw\":[\"中文\",null,{\"ref\":\"opaque\"}]}}],\"evaluations\":[{\"rule_id\":\"a\",\"condition\":null,\"read_variables\":[\"a\"],\"supporting_variables\":[],\"supporting_alternatives\":[],\"refuting_variables\":[],\"trace_compressed\":false},{\"rule_id\":\"b\",\"condition\":true,\"read_variables\":[\"b\"],\"supporting_variables\":[\"b\"],\"supporting_alternatives\":[[\"b\"]],\"refuting_variables\":[],\"trace_compressed\":false},{\"rule_id\":\"c\",\"condition\":null,\"read_variables\":[\"c\"],\"supporting_variables\":[],\"supporting_alternatives\":[],\"refuting_variables\":[],\"trace_compressed\":false},{\"rule_id\":\"d\",\"condition\":true,\"read_variables\":[\"d\"],\"supporting_variables\":[\"d\"],\"supporting_alternatives\":[[\"d\"]],\"refuting_variables\":[],\"trace_compressed\":false}]}",
+        "matched": [
+          {
+            "id": "b",
+            "when": {
+              "eq": [
+                "b",
+                1
+              ]
+            },
+            "output": {
+              "chosen": "b",
+              "raw": [
+                "中文",
+                null,
+                {
+                  "ref": "opaque"
+                }
+              ]
+            }
+          },
+          {
+            "id": "d",
+            "when": {
+              "eq": [
+                "d",
+                1
+              ]
+            },
+            "output": {
+              "chosen": "d",
+              "raw": [
+                "中文",
+                null,
+                {
+                  "ref": "opaque"
+                }
+              ]
+            }
+          }
+        ],
+        "outputs": [
+          {
+            "chosen": "b",
+            "raw": [
+              "中文",
+              null,
+              {
+                "ref": "opaque"
+              }
+            ]
+          },
+          {
+            "chosen": "d",
+            "raw": [
+              "中文",
+              null,
+              {
+                "ref": "opaque"
+              }
+            ]
+          }
+        ],
+        "evaluations": [
+          {
+            "rule_id": "a",
+            "condition": null,
+            "read_variables": [
+              "a"
+            ],
+            "supporting_variables": [],
+            "supporting_alternatives": [],
+            "refuting_variables": [],
+            "trace_compressed": false
+          },
+          {
+            "rule_id": "b",
+            "condition": true,
+            "read_variables": [
+              "b"
+            ],
+            "supporting_variables": [
+              "b"
+            ],
+            "supporting_alternatives": [
+              [
+                "b"
+              ]
+            ],
+            "refuting_variables": [],
+            "trace_compressed": false
+          },
+          {
+            "rule_id": "c",
+            "condition": null,
+            "read_variables": [
+              "c"
+            ],
+            "supporting_variables": [],
+            "supporting_alternatives": [],
+            "refuting_variables": [],
+            "trace_compressed": false
+          },
+          {
+            "rule_id": "d",
+            "condition": true,
+            "read_variables": [
+              "d"
+            ],
+            "supporting_variables": [
+              "d"
+            ],
+            "supporting_alternatives": [
+              [
+                "d"
+              ]
+            ],
+            "refuting_variables": [],
+            "trace_compressed": false
+          }
+        ],
+        "matched_rule_ids": [
+          "b",
+          "d"
+        ],
+        "status": "matched",
+        "table_id": "COLLECT-omitted-partial-match",
+        "table_version": "bb865f0cc6065172afe88b7aa1096f23b8cb85aaf18529db7a1683b4a8a945cf",
+        "selected_rule_ids": [
+          "b",
+          "d"
+        ],
+        "condition_matched_rule_ids": [
+          "b",
+          "d"
+        ],
+        "all_matches": [
+          {
+            "id": "b",
+            "when": {
+              "eq": [
+                "b",
+                1
+              ]
+            },
+            "output": {
+              "chosen": "b",
+              "raw": [
+                "中文",
+                null,
+                {
+                  "ref": "opaque"
+                }
+              ]
+            }
+          },
+          {
+            "id": "d",
+            "when": {
+              "eq": [
+                "d",
+                1
+              ]
+            },
+            "output": {
+              "chosen": "d",
+              "raw": [
+                "中文",
+                null,
+                {
+                  "ref": "opaque"
+                }
+              ]
+            }
+          }
+        ],
+        "unknown_rule_ids": [
+          "a",
+          "c"
+        ],
+        "blocking_unknown_rule_ids": [],
+        "decision_status": "matched",
+        "model_sha256": "b3d73592c9ce31312d3b9b1409f13016eed350e86f213f5677eb1e7cc68869c3",
+        "decision_result": {
+          "schema_version": "0.3.0",
+          "unknown_policy": "compatible",
+          "decision_status": "matched",
+          "selected_rule_ids": [
+            "b",
+            "d"
+          ],
+          "condition_matched_rule_ids": [
+            "b",
+            "d"
+          ],
+          "unknown_rule_ids": [
+            "a",
+            "c"
+          ],
+          "blocking_unknown_rule_ids": [],
+          "model_sha256": "b3d73592c9ce31312d3b9b1409f13016eed350e86f213f5677eb1e7cc68869c3"
+        }
+      }
+    },
+    {
+      "id": "COLLECT-omitted-all-unknown",
+      "parameters": {
+        "table_json": "{\n  \"id\": \"COLLECT-omitted-all-unknown\",\n  \"hit_policy\": \"COLLECT\",\n  \"rules\": [\n    {\n      \"id\": \"a\",\n      \"when\": {\n        \"eq\": [\n          \"a\",\n          1\n        ]\n      },\n      \"output\": {\n        \"chosen\": \"a\",\n        \"raw\": [\n          \"中文\",\n          null,\n          {\n            \"ref\": \"opaque\"\n          }\n        ]\n      }\n    },\n    {\n      \"id\": \"b\",\n      \"when\": {\n        \"eq\": [\n          \"b\",\n          1\n        ]\n      },\n      \"output\": {\n        \"chosen\": \"b\",\n        \"raw\": [\n          \"中文\",\n          null,\n          {\n            \"ref\": \"opaque\"\n          }\n        ]\n      }\n    },\n    {\n      \"id\": \"c\",\n      \"when\": {\n        \"eq\": [\n          \"c\",\n          1\n        ]\n      },\n      \"output\": {\n        \"chosen\": \"c\",\n        \"raw\": [\n          \"中文\",\n          null,\n          {\n            \"ref\": \"opaque\"\n          }\n        ]\n      }\n    },\n    {\n      \"id\": \"d\",\n      \"when\": {\n        \"eq\": [\n          \"d\",\n          1\n        ]\n      },\n      \"output\": {\n        \"chosen\": \"d\",\n        \"raw\": [\n          \"中文\",\n          null,\n          {\n            \"ref\": \"opaque\"\n          }\n        ]\n      }\n    }\n  ]\n}\n",
+        "values_json": "{}"
+      },
+      "expected_outputs": {
+        "result": {
+          "matched": [],
+          "evaluations": [
+            {
+              "rule_id": "a",
+              "condition": null,
+              "read_variables": [
+                "a"
+              ],
+              "supporting_variables": [],
+              "supporting_alternatives": [],
+              "refuting_variables": [],
+              "trace_compressed": false
+            },
+            {
+              "rule_id": "b",
+              "condition": null,
+              "read_variables": [
+                "b"
+              ],
+              "supporting_variables": [],
+              "supporting_alternatives": [],
+              "refuting_variables": [],
+              "trace_compressed": false
+            },
+            {
+              "rule_id": "c",
+              "condition": null,
+              "read_variables": [
+                "c"
+              ],
+              "supporting_variables": [],
+              "supporting_alternatives": [],
+              "refuting_variables": [],
+              "trace_compressed": false
+            },
+            {
+              "rule_id": "d",
+              "condition": null,
+              "read_variables": [
+                "d"
+              ],
+              "supporting_variables": [],
+              "supporting_alternatives": [],
+              "refuting_variables": [],
+              "trace_compressed": false
+            }
+          ]
+        },
+        "result_json": "{\"matched\":[],\"evaluations\":[{\"rule_id\":\"a\",\"condition\":null,\"read_variables\":[\"a\"],\"supporting_variables\":[],\"supporting_alternatives\":[],\"refuting_variables\":[],\"trace_compressed\":false},{\"rule_id\":\"b\",\"condition\":null,\"read_variables\":[\"b\"],\"supporting_variables\":[],\"supporting_alternatives\":[],\"refuting_variables\":[],\"trace_compressed\":false},{\"rule_id\":\"c\",\"condition\":null,\"read_variables\":[\"c\"],\"supporting_variables\":[],\"supporting_alternatives\":[],\"refuting_variables\":[],\"trace_compressed\":false},{\"rule_id\":\"d\",\"condition\":null,\"read_variables\":[\"d\"],\"supporting_variables\":[],\"supporting_alternatives\":[],\"refuting_variables\":[],\"trace_compressed\":false}]}",
+        "matched": [],
+        "outputs": [],
+        "evaluations": [
+          {
+            "rule_id": "a",
+            "condition": null,
+            "read_variables": [
+              "a"
+            ],
+            "supporting_variables": [],
+            "supporting_alternatives": [],
+            "refuting_variables": [],
+            "trace_compressed": false
+          },
+          {
+            "rule_id": "b",
+            "condition": null,
+            "read_variables": [
+              "b"
+            ],
+            "supporting_variables": [],
+            "supporting_alternatives": [],
+            "refuting_variables": [],
+            "trace_compressed": false
+          },
+          {
+            "rule_id": "c",
+            "condition": null,
+            "read_variables": [
+              "c"
+            ],
+            "supporting_variables": [],
+            "supporting_alternatives": [],
+            "refuting_variables": [],
+            "trace_compressed": false
+          },
+          {
+            "rule_id": "d",
+            "condition": null,
+            "read_variables": [
+              "d"
+            ],
+            "supporting_variables": [],
+            "supporting_alternatives": [],
+            "refuting_variables": [],
+            "trace_compressed": false
+          }
+        ],
+        "matched_rule_ids": [],
+        "status": "no_match",
+        "table_id": "COLLECT-omitted-all-unknown",
+        "table_version": "fb3078bd82a3f66cab6e4e41c01d07b9e8b128621381a9ce534d3c9450a73869",
+        "selected_rule_ids": [],
+        "condition_matched_rule_ids": [],
+        "all_matches": [],
+        "unknown_rule_ids": [
+          "a",
+          "b",
+          "c",
+          "d"
+        ],
+        "blocking_unknown_rule_ids": [
+          "a",
+          "b",
+          "c",
+          "d"
+        ],
+        "decision_status": "waiting_input",
+        "model_sha256": "df6dd8819970e3da288121763ca290873b9ef16805f66b87e95e46bc70851371",
+        "decision_result": {
+          "schema_version": "0.3.0",
+          "unknown_policy": "compatible",
+          "decision_status": "waiting_input",
+          "selected_rule_ids": [],
+          "condition_matched_rule_ids": [],
+          "unknown_rule_ids": [
+            "a",
+            "b",
+            "c",
+            "d"
+          ],
+          "blocking_unknown_rule_ids": [
+            "a",
+            "b",
+            "c",
+            "d"
+          ],
+          "model_sha256": "df6dd8819970e3da288121763ca290873b9ef16805f66b87e95e46bc70851371"
+        }
+      }
+    },
+    {
+      "id": "COLLECT-compatible-partial-match",
+      "parameters": {
+        "table_json": "{\n  \"id\": \"COLLECT-compatible-partial-match\",\n  \"hit_policy\": \"COLLECT\",\n  \"rules\": [\n    {\n      \"id\": \"a\",\n      \"when\": {\n        \"eq\": [\n          \"a\",\n          1\n        ]\n      },\n      \"output\": {\n        \"chosen\": \"a\",\n        \"raw\": [\n          \"中文\",\n          null,\n          {\n            \"ref\": \"opaque\"\n          }\n        ]\n      }\n    },\n    {\n      \"id\": \"b\",\n      \"when\": {\n        \"eq\": [\n          \"b\",\n          1\n        ]\n      },\n      \"output\": {\n        \"chosen\": \"b\",\n        \"raw\": [\n          \"中文\",\n          null,\n          {\n            \"ref\": \"opaque\"\n          }\n        ]\n      }\n    },\n    {\n      \"id\": \"c\",\n      \"when\": {\n        \"eq\": [\n          \"c\",\n          1\n        ]\n      },\n      \"output\": {\n        \"chosen\": \"c\",\n        \"raw\": [\n          \"中文\",\n          null,\n          {\n            \"ref\": \"opaque\"\n          }\n        ]\n      }\n    },\n    {\n      \"id\": \"d\",\n      \"when\": {\n        \"eq\": [\n          \"d\",\n          1\n        ]\n      },\n      \"output\": {\n        \"chosen\": \"d\",\n        \"raw\": [\n          \"中文\",\n          null,\n          {\n            \"ref\": \"opaque\"\n          }\n        ]\n      }\n    }\n  ],\n  \"unknown_policy\": \"compatible\"\n}\n",
+        "values_json": "{\"b\": 1, \"d\": 1}"
+      },
+      "expected_outputs": {
+        "result": {
+          "matched": [
+            {
+              "id": "b",
+              "when": {
+                "eq": [
+                  "b",
+                  1
+                ]
+              },
+              "output": {
+                "chosen": "b",
+                "raw": [
+                  "中文",
+                  null,
+                  {
+                    "ref": "opaque"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "d",
+              "when": {
+                "eq": [
+                  "d",
+                  1
+                ]
+              },
+              "output": {
+                "chosen": "d",
+                "raw": [
+                  "中文",
+                  null,
+                  {
+                    "ref": "opaque"
+                  }
+                ]
+              }
+            }
+          ],
+          "evaluations": [
+            {
+              "rule_id": "a",
+              "condition": null,
+              "read_variables": [
+                "a"
+              ],
+              "supporting_variables": [],
+              "supporting_alternatives": [],
+              "refuting_variables": [],
+              "trace_compressed": false
+            },
+            {
+              "rule_id": "b",
+              "condition": true,
+              "read_variables": [
+                "b"
+              ],
+              "supporting_variables": [
+                "b"
+              ],
+              "supporting_alternatives": [
+                [
+                  "b"
+                ]
+              ],
+              "refuting_variables": [],
+              "trace_compressed": false
+            },
+            {
+              "rule_id": "c",
+              "condition": null,
+              "read_variables": [
+                "c"
+              ],
+              "supporting_variables": [],
+              "supporting_alternatives": [],
+              "refuting_variables": [],
+              "trace_compressed": false
+            },
+            {
+              "rule_id": "d",
+              "condition": true,
+              "read_variables": [
+                "d"
+              ],
+              "supporting_variables": [
+                "d"
+              ],
+              "supporting_alternatives": [
+                [
+                  "d"
+                ]
+              ],
+              "refuting_variables": [],
+              "trace_compressed": false
+            }
+          ]
+        },
+        "result_json": "{\"matched\":[{\"id\":\"b\",\"when\":{\"eq\":[\"b\",1]},\"output\":{\"chosen\":\"b\",\"raw\":[\"中文\",null,{\"ref\":\"opaque\"}]}},{\"id\":\"d\",\"when\":{\"eq\":[\"d\",1]},\"output\":{\"chosen\":\"d\",\"raw\":[\"中文\",null,{\"ref\":\"opaque\"}]}}],\"evaluations\":[{\"rule_id\":\"a\",\"condition\":null,\"read_variables\":[\"a\"],\"supporting_variables\":[],\"supporting_alternatives\":[],\"refuting_variables\":[],\"trace_compressed\":false},{\"rule_id\":\"b\",\"condition\":true,\"read_variables\":[\"b\"],\"supporting_variables\":[\"b\"],\"supporting_alternatives\":[[\"b\"]],\"refuting_variables\":[],\"trace_compressed\":false},{\"rule_id\":\"c\",\"condition\":null,\"read_variables\":[\"c\"],\"supporting_variables\":[],\"supporting_alternatives\":[],\"refuting_variables\":[],\"trace_compressed\":false},{\"rule_id\":\"d\",\"condition\":true,\"read_variables\":[\"d\"],\"supporting_variables\":[\"d\"],\"supporting_alternatives\":[[\"d\"]],\"refuting_variables\":[],\"trace_compressed\":false}]}",
+        "matched": [
+          {
+            "id": "b",
+            "when": {
+              "eq": [
+                "b",
+                1
+              ]
+            },
+            "output": {
+              "chosen": "b",
+              "raw": [
+                "中文",
+                null,
+                {
+                  "ref": "opaque"
+                }
+              ]
+            }
+          },
+          {
+            "id": "d",
+            "when": {
+              "eq": [
+                "d",
+                1
+              ]
+            },
+            "output": {
+              "chosen": "d",
+              "raw": [
+                "中文",
+                null,
+                {
+                  "ref": "opaque"
+                }
+              ]
+            }
+          }
+        ],
+        "outputs": [
+          {
+            "chosen": "b",
+            "raw": [
+              "中文",
+              null,
+              {
+                "ref": "opaque"
+              }
+            ]
+          },
+          {
+            "chosen": "d",
+            "raw": [
+              "中文",
+              null,
+              {
+                "ref": "opaque"
+              }
+            ]
+          }
+        ],
+        "evaluations": [
+          {
+            "rule_id": "a",
+            "condition": null,
+            "read_variables": [
+              "a"
+            ],
+            "supporting_variables": [],
+            "supporting_alternatives": [],
+            "refuting_variables": [],
+            "trace_compressed": false
+          },
+          {
+            "rule_id": "b",
+            "condition": true,
+            "read_variables": [
+              "b"
+            ],
+            "supporting_variables": [
+              "b"
+            ],
+            "supporting_alternatives": [
+              [
+                "b"
+              ]
+            ],
+            "refuting_variables": [],
+            "trace_compressed": false
+          },
+          {
+            "rule_id": "c",
+            "condition": null,
+            "read_variables": [
+              "c"
+            ],
+            "supporting_variables": [],
+            "supporting_alternatives": [],
+            "refuting_variables": [],
+            "trace_compressed": false
+          },
+          {
+            "rule_id": "d",
+            "condition": true,
+            "read_variables": [
+              "d"
+            ],
+            "supporting_variables": [
+              "d"
+            ],
+            "supporting_alternatives": [
+              [
+                "d"
+              ]
+            ],
+            "refuting_variables": [],
+            "trace_compressed": false
+          }
+        ],
+        "matched_rule_ids": [
+          "b",
+          "d"
+        ],
+        "status": "matched",
+        "table_id": "COLLECT-compatible-partial-match",
+        "table_version": "baef9677df536c094bf0dcc6050cb11de3ca438f35257d0f7b5c7ed61d8b07f0",
+        "selected_rule_ids": [
+          "b",
+          "d"
+        ],
+        "condition_matched_rule_ids": [
+          "b",
+          "d"
+        ],
+        "all_matches": [
+          {
+            "id": "b",
+            "when": {
+              "eq": [
+                "b",
+                1
+              ]
+            },
+            "output": {
+              "chosen": "b",
+              "raw": [
+                "中文",
+                null,
+                {
+                  "ref": "opaque"
+                }
+              ]
+            }
+          },
+          {
+            "id": "d",
+            "when": {
+              "eq": [
+                "d",
+                1
+              ]
+            },
+            "output": {
+              "chosen": "d",
+              "raw": [
+                "中文",
+                null,
+                {
+                  "ref": "opaque"
+                }
+              ]
+            }
+          }
+        ],
+        "unknown_rule_ids": [
+          "a",
+          "c"
+        ],
+        "blocking_unknown_rule_ids": [],
+        "decision_status": "matched",
+        "model_sha256": "2aa7c617f00dba9e60d574315313acc0284a4db72b0d55e5f0a22a905973b5a7",
+        "decision_result": {
+          "schema_version": "0.3.0",
+          "unknown_policy": "compatible",
+          "decision_status": "matched",
+          "selected_rule_ids": [
+            "b",
+            "d"
+          ],
+          "condition_matched_rule_ids": [
+            "b",
+            "d"
+          ],
+          "unknown_rule_ids": [
+            "a",
+            "c"
+          ],
+          "blocking_unknown_rule_ids": [],
+          "model_sha256": "2aa7c617f00dba9e60d574315313acc0284a4db72b0d55e5f0a22a905973b5a7"
+        }
+      }
+    },
+    {
+      "id": "COLLECT-compatible-all-unknown",
+      "parameters": {
+        "table_json": "{\n  \"id\": \"COLLECT-compatible-all-unknown\",\n  \"hit_policy\": \"COLLECT\",\n  \"rules\": [\n    {\n      \"id\": \"a\",\n      \"when\": {\n        \"eq\": [\n          \"a\",\n          1\n        ]\n      },\n      \"output\": {\n        \"chosen\": \"a\",\n        \"raw\": [\n          \"中文\",\n          null,\n          {\n            \"ref\": \"opaque\"\n          }\n        ]\n      }\n    },\n    {\n      \"id\": \"b\",\n      \"when\": {\n        \"eq\": [\n          \"b\",\n          1\n        ]\n      },\n      \"output\": {\n        \"chosen\": \"b\",\n        \"raw\": [\n          \"中文\",\n          null,\n          {\n            \"ref\": \"opaque\"\n          }\n        ]\n      }\n    },\n    {\n      \"id\": \"c\",\n      \"when\": {\n        \"eq\": [\n          \"c\",\n          1\n        ]\n      },\n      \"output\": {\n        \"chosen\": \"c\",\n        \"raw\": [\n          \"中文\",\n          null,\n          {\n            \"ref\": \"opaque\"\n          }\n        ]\n      }\n    },\n    {\n      \"id\": \"d\",\n      \"when\": {\n        \"eq\": [\n          \"d\",\n          1\n        ]\n      },\n      \"output\": {\n        \"chosen\": \"d\",\n        \"raw\": [\n          \"中文\",\n          null,\n          {\n            \"ref\": \"opaque\"\n          }\n        ]\n      }\n    }\n  ],\n  \"unknown_policy\": \"compatible\"\n}\n",
+        "values_json": "{}"
+      },
+      "expected_outputs": {
+        "result": {
+          "matched": [],
+          "evaluations": [
+            {
+              "rule_id": "a",
+              "condition": null,
+              "read_variables": [
+                "a"
+              ],
+              "supporting_variables": [],
+              "supporting_alternatives": [],
+              "refuting_variables": [],
+              "trace_compressed": false
+            },
+            {
+              "rule_id": "b",
+              "condition": null,
+              "read_variables": [
+                "b"
+              ],
+              "supporting_variables": [],
+              "supporting_alternatives": [],
+              "refuting_variables": [],
+              "trace_compressed": false
+            },
+            {
+              "rule_id": "c",
+              "condition": null,
+              "read_variables": [
+                "c"
+              ],
+              "supporting_variables": [],
+              "supporting_alternatives": [],
+              "refuting_variables": [],
+              "trace_compressed": false
+            },
+            {
+              "rule_id": "d",
+              "condition": null,
+              "read_variables": [
+                "d"
+              ],
+              "supporting_variables": [],
+              "supporting_alternatives": [],
+              "refuting_variables": [],
+              "trace_compressed": false
+            }
+          ]
+        },
+        "result_json": "{\"matched\":[],\"evaluations\":[{\"rule_id\":\"a\",\"condition\":null,\"read_variables\":[\"a\"],\"supporting_variables\":[],\"supporting_alternatives\":[],\"refuting_variables\":[],\"trace_compressed\":false},{\"rule_id\":\"b\",\"condition\":null,\"read_variables\":[\"b\"],\"supporting_variables\":[],\"supporting_alternatives\":[],\"refuting_variables\":[],\"trace_compressed\":false},{\"rule_id\":\"c\",\"condition\":null,\"read_variables\":[\"c\"],\"supporting_variables\":[],\"supporting_alternatives\":[],\"refuting_variables\":[],\"trace_compressed\":false},{\"rule_id\":\"d\",\"condition\":null,\"read_variables\":[\"d\"],\"supporting_variables\":[],\"supporting_alternatives\":[],\"refuting_variables\":[],\"trace_compressed\":false}]}",
+        "matched": [],
+        "outputs": [],
+        "evaluations": [
+          {
+            "rule_id": "a",
+            "condition": null,
+            "read_variables": [
+              "a"
+            ],
+            "supporting_variables": [],
+            "supporting_alternatives": [],
+            "refuting_variables": [],
+            "trace_compressed": false
+          },
+          {
+            "rule_id": "b",
+            "condition": null,
+            "read_variables": [
+              "b"
+            ],
+            "supporting_variables": [],
+            "supporting_alternatives": [],
+            "refuting_variables": [],
+            "trace_compressed": false
+          },
+          {
+            "rule_id": "c",
+            "condition": null,
+            "read_variables": [
+              "c"
+            ],
+            "supporting_variables": [],
+            "supporting_alternatives": [],
+            "refuting_variables": [],
+            "trace_compressed": false
+          },
+          {
+            "rule_id": "d",
+            "condition": null,
+            "read_variables": [
+              "d"
+            ],
+            "supporting_variables": [],
+            "supporting_alternatives": [],
+            "refuting_variables": [],
+            "trace_compressed": false
+          }
+        ],
+        "matched_rule_ids": [],
+        "status": "no_match",
+        "table_id": "COLLECT-compatible-all-unknown",
+        "table_version": "89d09de31396651125b793c0c6c8a3240ababb8da932552dbef2503815480560",
+        "selected_rule_ids": [],
+        "condition_matched_rule_ids": [],
+        "all_matches": [],
+        "unknown_rule_ids": [
+          "a",
+          "b",
+          "c",
+          "d"
+        ],
+        "blocking_unknown_rule_ids": [
+          "a",
+          "b",
+          "c",
+          "d"
+        ],
+        "decision_status": "waiting_input",
+        "model_sha256": "529fa27cc3d7bce22f9bb870b3943b6651da60a567348efe119b819f1d904bf1",
+        "decision_result": {
+          "schema_version": "0.3.0",
+          "unknown_policy": "compatible",
+          "decision_status": "waiting_input",
+          "selected_rule_ids": [],
+          "condition_matched_rule_ids": [],
+          "unknown_rule_ids": [
+            "a",
+            "b",
+            "c",
+            "d"
+          ],
+          "blocking_unknown_rule_ids": [
+            "a",
+            "b",
+            "c",
+            "d"
+          ],
+          "model_sha256": "529fa27cc3d7bce22f9bb870b3943b6651da60a567348efe119b819f1d904bf1"
+        }
+      }
+    },
+    {
+      "id": "COLLECT-strict-partial-match",
+      "parameters": {
+        "table_json": "{\n  \"id\": \"COLLECT-strict-partial-match\",\n  \"hit_policy\": \"COLLECT\",\n  \"rules\": [\n    {\n      \"id\": \"a\",\n      \"when\": {\n        \"eq\": [\n          \"a\",\n          1\n        ]\n      },\n      \"output\": {\n        \"chosen\": \"a\",\n        \"raw\": [\n          \"中文\",\n          null,\n          {\n            \"ref\": \"opaque\"\n          }\n        ]\n      }\n    },\n    {\n      \"id\": \"b\",\n      \"when\": {\n        \"eq\": [\n          \"b\",\n          1\n        ]\n      },\n      \"output\": {\n        \"chosen\": \"b\",\n        \"raw\": [\n          \"中文\",\n          null,\n          {\n            \"ref\": \"opaque\"\n          }\n        ]\n      }\n    },\n    {\n      \"id\": \"c\",\n      \"when\": {\n        \"eq\": [\n          \"c\",\n          1\n        ]\n      },\n      \"output\": {\n        \"chosen\": \"c\",\n        \"raw\": [\n          \"中文\",\n          null,\n          {\n            \"ref\": \"opaque\"\n          }\n        ]\n      }\n    },\n    {\n      \"id\": \"d\",\n      \"when\": {\n        \"eq\": [\n          \"d\",\n          1\n        ]\n      },\n      \"output\": {\n        \"chosen\": \"d\",\n        \"raw\": [\n          \"中文\",\n          null,\n          {\n            \"ref\": \"opaque\"\n          }\n        ]\n      }\n    }\n  ],\n  \"unknown_policy\": \"strict\"\n}\n",
+        "values_json": "{\"b\": 1, \"d\": 1}"
+      },
+      "expected_outputs": {
+        "result": {
+          "matched": [],
+          "evaluations": [
+            {
+              "rule_id": "a",
+              "condition": null,
+              "read_variables": [
+                "a"
+              ],
+              "supporting_variables": [],
+              "supporting_alternatives": [],
+              "refuting_variables": [],
+              "trace_compressed": false
+            },
+            {
+              "rule_id": "b",
+              "condition": true,
+              "read_variables": [
+                "b"
+              ],
+              "supporting_variables": [
+                "b"
+              ],
+              "supporting_alternatives": [
+                [
+                  "b"
+                ]
+              ],
+              "refuting_variables": [],
+              "trace_compressed": false
+            },
+            {
+              "rule_id": "c",
+              "condition": null,
+              "read_variables": [
+                "c"
+              ],
+              "supporting_variables": [],
+              "supporting_alternatives": [],
+              "refuting_variables": [],
+              "trace_compressed": false
+            },
+            {
+              "rule_id": "d",
+              "condition": true,
+              "read_variables": [
+                "d"
+              ],
+              "supporting_variables": [
+                "d"
+              ],
+              "supporting_alternatives": [
+                [
+                  "d"
+                ]
+              ],
+              "refuting_variables": [],
+              "trace_compressed": false
+            }
+          ]
+        },
+        "result_json": "{\"matched\":[],\"evaluations\":[{\"rule_id\":\"a\",\"condition\":null,\"read_variables\":[\"a\"],\"supporting_variables\":[],\"supporting_alternatives\":[],\"refuting_variables\":[],\"trace_compressed\":false},{\"rule_id\":\"b\",\"condition\":true,\"read_variables\":[\"b\"],\"supporting_variables\":[\"b\"],\"supporting_alternatives\":[[\"b\"]],\"refuting_variables\":[],\"trace_compressed\":false},{\"rule_id\":\"c\",\"condition\":null,\"read_variables\":[\"c\"],\"supporting_variables\":[],\"supporting_alternatives\":[],\"refuting_variables\":[],\"trace_compressed\":false},{\"rule_id\":\"d\",\"condition\":true,\"read_variables\":[\"d\"],\"supporting_variables\":[\"d\"],\"supporting_alternatives\":[[\"d\"]],\"refuting_variables\":[],\"trace_compressed\":false}]}",
+        "matched": [],
+        "outputs": [],
+        "evaluations": [
+          {
+            "rule_id": "a",
+            "condition": null,
+            "read_variables": [
+              "a"
+            ],
+            "supporting_variables": [],
+            "supporting_alternatives": [],
+            "refuting_variables": [],
+            "trace_compressed": false
+          },
+          {
+            "rule_id": "b",
+            "condition": true,
+            "read_variables": [
+              "b"
+            ],
+            "supporting_variables": [
+              "b"
+            ],
+            "supporting_alternatives": [
+              [
+                "b"
+              ]
+            ],
+            "refuting_variables": [],
+            "trace_compressed": false
+          },
+          {
+            "rule_id": "c",
+            "condition": null,
+            "read_variables": [
+              "c"
+            ],
+            "supporting_variables": [],
+            "supporting_alternatives": [],
+            "refuting_variables": [],
+            "trace_compressed": false
+          },
+          {
+            "rule_id": "d",
+            "condition": true,
+            "read_variables": [
+              "d"
+            ],
+            "supporting_variables": [
+              "d"
+            ],
+            "supporting_alternatives": [
+              [
+                "d"
+              ]
+            ],
+            "refuting_variables": [],
+            "trace_compressed": false
+          }
+        ],
+        "matched_rule_ids": [],
+        "status": "waiting_input",
+        "table_id": "COLLECT-strict-partial-match",
+        "table_version": "ab560e0b9debc04f7eac33b72826f6061995f74ee6a27438442170a26fbd41dc",
+        "selected_rule_ids": [],
+        "condition_matched_rule_ids": [
+          "b",
+          "d"
+        ],
+        "all_matches": [
+          {
+            "id": "b",
+            "when": {
+              "eq": [
+                "b",
+                1
+              ]
+            },
+            "output": {
+              "chosen": "b",
+              "raw": [
+                "中文",
+                null,
+                {
+                  "ref": "opaque"
+                }
+              ]
+            }
+          },
+          {
+            "id": "d",
+            "when": {
+              "eq": [
+                "d",
+                1
+              ]
+            },
+            "output": {
+              "chosen": "d",
+              "raw": [
+                "中文",
+                null,
+                {
+                  "ref": "opaque"
+                }
+              ]
+            }
+          }
+        ],
+        "unknown_rule_ids": [
+          "a",
+          "c"
+        ],
+        "blocking_unknown_rule_ids": [
+          "a",
+          "c"
+        ],
+        "decision_status": "waiting_input",
+        "model_sha256": "63032f449386374dbf7ff12e71132a4fc58f0e1a612c197a67fa3fa9693eea36",
+        "decision_result": {
+          "schema_version": "0.3.0",
+          "unknown_policy": "strict",
+          "decision_status": "waiting_input",
+          "selected_rule_ids": [],
+          "condition_matched_rule_ids": [
+            "b",
+            "d"
+          ],
+          "unknown_rule_ids": [
+            "a",
+            "c"
+          ],
+          "blocking_unknown_rule_ids": [
+            "a",
+            "c"
+          ],
+          "model_sha256": "63032f449386374dbf7ff12e71132a4fc58f0e1a612c197a67fa3fa9693eea36"
+        }
+      }
+    },
+    {
+      "id": "COLLECT-strict-all-unknown",
+      "parameters": {
+        "table_json": "{\n  \"id\": \"COLLECT-strict-all-unknown\",\n  \"hit_policy\": \"COLLECT\",\n  \"rules\": [\n    {\n      \"id\": \"a\",\n      \"when\": {\n        \"eq\": [\n          \"a\",\n          1\n        ]\n      },\n      \"output\": {\n        \"chosen\": \"a\",\n        \"raw\": [\n          \"中文\",\n          null,\n          {\n            \"ref\": \"opaque\"\n          }\n        ]\n      }\n    },\n    {\n      \"id\": \"b\",\n      \"when\": {\n        \"eq\": [\n          \"b\",\n          1\n        ]\n      },\n      \"output\": {\n        \"chosen\": \"b\",\n        \"raw\": [\n          \"中文\",\n          null,\n          {\n            \"ref\": \"opaque\"\n          }\n        ]\n      }\n    },\n    {\n      \"id\": \"c\",\n      \"when\": {\n        \"eq\": [\n          \"c\",\n          1\n        ]\n      },\n      \"output\": {\n        \"chosen\": \"c\",\n        \"raw\": [\n          \"中文\",\n          null,\n          {\n            \"ref\": \"opaque\"\n          }\n        ]\n      }\n    },\n    {\n      \"id\": \"d\",\n      \"when\": {\n        \"eq\": [\n          \"d\",\n          1\n        ]\n      },\n      \"output\": {\n        \"chosen\": \"d\",\n        \"raw\": [\n          \"中文\",\n          null,\n          {\n            \"ref\": \"opaque\"\n          }\n        ]\n      }\n    }\n  ],\n  \"unknown_policy\": \"strict\"\n}\n",
+        "values_json": "{}"
+      },
+      "expected_outputs": {
+        "result": {
+          "matched": [],
+          "evaluations": [
+            {
+              "rule_id": "a",
+              "condition": null,
+              "read_variables": [
+                "a"
+              ],
+              "supporting_variables": [],
+              "supporting_alternatives": [],
+              "refuting_variables": [],
+              "trace_compressed": false
+            },
+            {
+              "rule_id": "b",
+              "condition": null,
+              "read_variables": [
+                "b"
+              ],
+              "supporting_variables": [],
+              "supporting_alternatives": [],
+              "refuting_variables": [],
+              "trace_compressed": false
+            },
+            {
+              "rule_id": "c",
+              "condition": null,
+              "read_variables": [
+                "c"
+              ],
+              "supporting_variables": [],
+              "supporting_alternatives": [],
+              "refuting_variables": [],
+              "trace_compressed": false
+            },
+            {
+              "rule_id": "d",
+              "condition": null,
+              "read_variables": [
+                "d"
+              ],
+              "supporting_variables": [],
+              "supporting_alternatives": [],
+              "refuting_variables": [],
+              "trace_compressed": false
+            }
+          ]
+        },
+        "result_json": "{\"matched\":[],\"evaluations\":[{\"rule_id\":\"a\",\"condition\":null,\"read_variables\":[\"a\"],\"supporting_variables\":[],\"supporting_alternatives\":[],\"refuting_variables\":[],\"trace_compressed\":false},{\"rule_id\":\"b\",\"condition\":null,\"read_variables\":[\"b\"],\"supporting_variables\":[],\"supporting_alternatives\":[],\"refuting_variables\":[],\"trace_compressed\":false},{\"rule_id\":\"c\",\"condition\":null,\"read_variables\":[\"c\"],\"supporting_variables\":[],\"supporting_alternatives\":[],\"refuting_variables\":[],\"trace_compressed\":false},{\"rule_id\":\"d\",\"condition\":null,\"read_variables\":[\"d\"],\"supporting_variables\":[],\"supporting_alternatives\":[],\"refuting_variables\":[],\"trace_compressed\":false}]}",
+        "matched": [],
+        "outputs": [],
+        "evaluations": [
+          {
+            "rule_id": "a",
+            "condition": null,
+            "read_variables": [
+              "a"
+            ],
+            "supporting_variables": [],
+            "supporting_alternatives": [],
+            "refuting_variables": [],
+            "trace_compressed": false
+          },
+          {
+            "rule_id": "b",
+            "condition": null,
+            "read_variables": [
+              "b"
+            ],
+            "supporting_variables": [],
+            "supporting_alternatives": [],
+            "refuting_variables": [],
+            "trace_compressed": false
+          },
+          {
+            "rule_id": "c",
+            "condition": null,
+            "read_variables": [
+              "c"
+            ],
+            "supporting_variables": [],
+            "supporting_alternatives": [],
+            "refuting_variables": [],
+            "trace_compressed": false
+          },
+          {
+            "rule_id": "d",
+            "condition": null,
+            "read_variables": [
+              "d"
+            ],
+            "supporting_variables": [],
+            "supporting_alternatives": [],
+            "refuting_variables": [],
+            "trace_compressed": false
+          }
+        ],
+        "matched_rule_ids": [],
+        "status": "waiting_input",
+        "table_id": "COLLECT-strict-all-unknown",
+        "table_version": "f26cd0a9f96c750572689b7d3640e32341482bc50ba9916ee2c06b7e3fc91644",
+        "selected_rule_ids": [],
+        "condition_matched_rule_ids": [],
+        "all_matches": [],
+        "unknown_rule_ids": [
+          "a",
+          "b",
+          "c",
+          "d"
+        ],
+        "blocking_unknown_rule_ids": [
+          "a",
+          "b",
+          "c",
+          "d"
+        ],
+        "decision_status": "waiting_input",
+        "model_sha256": "a6f5e9b2a382d1f77bded09717ec22078f7133b291c5f4c61f8874c438c83aff",
+        "decision_result": {
+          "schema_version": "0.3.0",
+          "unknown_policy": "strict",
+          "decision_status": "waiting_input",
+          "selected_rule_ids": [],
+          "condition_matched_rule_ids": [],
+          "unknown_rule_ids": [
+            "a",
+            "b",
+            "c",
+            "d"
+          ],
+          "blocking_unknown_rule_ids": [
+            "a",
+            "b",
+            "c",
+            "d"
+          ],
+          "model_sha256": "a6f5e9b2a382d1f77bded09717ec22078f7133b291c5f4c61f8874c438c83aff"
+        }
+      }
+    }
+  ]
+}

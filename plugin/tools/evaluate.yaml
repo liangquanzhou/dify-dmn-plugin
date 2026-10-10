@@ -18,8 +18,8 @@ parameters:
       en_US: Decision table JSON
       zh_Hans: 决策表 JSON
     human_description:
-      en_US: One table with id, hit_policy FIRST or COLLECT, rules, and optional unknown_policy compatible or strict. No DMN XML or whole plan.
-      zh_Hans: 一张含 id、hit_policy（FIRST 或 COLLECT）、rules 的表；可选 unknown_policy 为 compatible 或 strict，不接收 XML 或整份方案。
+      en_US: One table with id, hit_policy FIRST, COLLECT or UNIQUE, rules, and optional unknown_policy compatible or strict. UNIQUE requires a provably single match; unresolved rules wait and multiple true rules conflict. No DMN XML or whole plan.
+      zh_Hans: 一张含 id、hit_policy（FIRST、COLLECT 或 UNIQUE）、rules 的表；可选 unknown_policy 为 compatible 或 strict。UNIQUE 必须确认唯一命中，未决时等待，多条为真时冲突。不接收 XML 或整份方案。
   - name: values_json
     type: string
     required: true
@@ -70,7 +70,7 @@ output_schema:
         type: string
     status:
       type: string
-      description: Legacy selection status; strict waiting adds waiting_input. Prefer decision_status; errors fail the Tool instead
+      description: Legacy FIRST/COLLECT selection status is unchanged. UNIQUE uses matched, no_match, waiting_input or conflict. Prefer decision_status; technical errors fail the Tool
     table_id:
       type: string
     table_version:
@@ -80,7 +80,7 @@ output_schema:
       type: array
       items:
         type: string
-      description: Actually selected rule ids; empty while strict policy waits
+      description: Actually selected rule ids; empty on conflict or while strict/UNIQUE waits
     condition_matched_rule_ids:
       type: array
       items:
@@ -102,13 +102,13 @@ output_schema:
       description: Unknown rules causing this invocation to wait under the active policy
     decision_status:
       type: string
-      description: matched, no_match or waiting_input; technical errors fail the Tool
+      description: matched, no_match or waiting_input; UNIQUE additionally returns conflict for two or more true rules with no selection. Handle all four states. Technical errors fail the Tool
     model_sha256:
       type: string
       description: SHA-256 of RFC 8785 canonical full table content, including an explicit unknown_policy
     decision_result:
       type: object
-      description: Versioned v0.3.0 outcome metadata, policy, selected/all-true/unknown ids and canonical digest
+      description: Outcome metadata, policy, selected/all-true/unknown ids and canonical digest. schema_version is 0.5.0 for UNIQUE and remains 0.3.0 for FIRST/COLLECT
 extra:
   python:
     source: tools/evaluate.py

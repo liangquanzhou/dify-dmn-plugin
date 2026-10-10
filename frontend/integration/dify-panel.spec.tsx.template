@@ -92,6 +92,18 @@ test('leaves another provider on the original native settings branch', () => {
   expect(ToolForm).toHaveBeenCalledTimes(1)
   expect(setSettings).not.toHaveBeenCalled()
 })
+test('renders literal UNIQUE and its safety explanation without changing native settings', () => {
+  const uniqueRaw = raw.replace('"FIRST"', '"UNIQUE"')
+  const config = configure({ readOnly: true, toolSettingValue: { table_json: { type: 'constant', value: uniqueRaw } } })
+  render(<Panel id='unique' data={data} panelProps={panelProps}/>)
+  expect(screen.getByText('UNIQUE', { exact: true })).toBeInTheDocument()
+  expect(screen.getByLabelText('UNIQUE 策略说明')).toHaveTextContent('conflict')
+  expect(screen.getByLabelText('UNIQUE 策略说明')).toHaveTextContent('compatible / strict 均需等待唯一性确认')
+  expect(screen.getByRole('table')).toHaveTextContent('rule-a')
+  expect(jest.mocked(ToolForm).mock.calls[0][0].value).toBe(config.toolSettingValue)
+  expect(setSettings).not.toHaveBeenCalled()
+  expect(setInput).not.toHaveBeenCalled()
+})
 test('does not render a guessed static matrix for dynamic variables', () => {
   configure({ toolSettingValue: { table_json: { type: 'variable', value: ['upstream', 'table'] } } })
   render(<Panel id='dynamic' data={data} panelProps={panelProps}/>)

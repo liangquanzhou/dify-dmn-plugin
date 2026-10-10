@@ -116,8 +116,8 @@ def validate_table(table: Any) -> int:
         _fail("INVALID_TABLE", "$", "A decision table must be an object.")
     if not isinstance(table.get("id"), str) or not table["id"].strip():
         _fail("INVALID_TABLE", "$.id", "A table id must be a nonempty string.")
-    if table.get("hit_policy") not in ("FIRST", "COLLECT"):
-        _fail("UNSUPPORTED_HIT_POLICY", "$.hit_policy", "Only FIRST and COLLECT hit policies are supported.")
+    if table.get("hit_policy") not in ("FIRST", "COLLECT", "UNIQUE"):
+        _fail("UNSUPPORTED_HIT_POLICY", "$.hit_policy", "Only FIRST, COLLECT and UNIQUE hit policies are supported.")
     rules = table.get("rules")
     if not isinstance(rules, list):
         _fail("INVALID_TABLE", "$.rules", "Rules must be an array.")
@@ -389,7 +389,11 @@ def _constraint_row(row: Any) -> bool | None:
 
 
 def evaluate_table(table: dict[str, Any], values: dict[str, Any]) -> dict[str, Any]:
-    """Evaluate every rule and select raw rules according to FIRST or COLLECT."""
+    """Evaluate every rule; UNIQUE selects only a provably single true rule.
+
+    Conflict/waiting diagnostics are supplied by decision_policy.apply_policy.
+    The raw evaluator must not expose an arbitrary or provisional UNIQUE winner.
+    """
     validate_table(table)
     if not isinstance(values, dict) or any(not isinstance(key, str) for key in values):
         _fail("INVALID_VALUES", "$", "Values must be an object with string keys.")
@@ -408,7 +412,11 @@ def evaluate_table(table: dict[str, Any], values: dict[str, Any]) -> dict[str, A
         })
         if trace.condition is True:
             true_rules.append(rule)
+    if table["hit_policy"] == "UNIQUE":
+        selected = true_rules if len(true_rules) == 1 and all(e["condition"] is not None for e in evaluations) else []
+    else:
+        selected = true_rules[:1] if table["hit_policy"] == "FIRST" else true_rules
     return {
-        "matched": true_rules[:1] if table["hit_policy"] == "FIRST" else true_rules,
+        "matched": selected,
         "evaluations": evaluations,
     }

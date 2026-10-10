@@ -34,7 +34,7 @@ func read(t *testing.T, path string) []byte {
 
 func checkManifest(t *testing.T, manifest pe.PluginDeclaration) {
 	t.Helper()
-	if manifest.Version != "0.4.1" || manifest.Author != "liangquanzhou" || manifest.Name != "dmn_decision" {
+	if manifest.Version != "0.5.0" || manifest.Author != "liangquanzhou" || manifest.Name != "dmn_decision" {
 		t.Fatal("wrong release identity", manifest)
 	}
 	if manifest.Meta.MinimumDifyVersion == nil || *manifest.Meta.MinimumDifyVersion != "1.11.1" || manifest.Meta.Runner.Version != "3.12" {

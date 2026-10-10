@@ -1,5 +1,5 @@
 PASS: real SDK stdio bootstrap; no-credential validation; 13 successful calls; 21 explicit errors; 221 variables; 13 JSON messages; 35 session ends
-Wire evidence: /tmp/dmn-v030-final-stdio-evidence.json
+Wire evidence: retained locally; historical v0.3.0 synthetic stdio record
 Exact tested package SHA-256: 30dde6e77640789d8dcb9fe5055a3b07309e18bfaf7a262631703f420e8750f2
 PASS: real Dify 1.11.1 credential-free provider; form/llm string parameters; 17 output fields; 221 variable + 13 JSON messages; mixed/null array preservation; 21 explicit errors
 Scope: API declaration/message-model compatibility; frontend renders unconstrained outputs as Array[Unknown]

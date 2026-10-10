@@ -1,0 +1,119 @@
+identity:
+  name: evaluate_decision
+  author: liangquanzhou
+  label:
+    en_US: Evaluate Typed Decision
+    zh_Hans: Evaluate Typed Decision
+description:
+  human:
+    en_US: Pure fixed typed DECISION node. Returns intents only. Does not activate
+      a graph, query external data, or execute actions. Default trust is content-only.
+    zh_Hans: Pure fixed typed DECISION node. Returns intents only. Does not activate
+      a graph, query external data, or execute actions. Default trust is content-only.
+  llm: Pure fixed typed DECISION node. Returns intents only. Does not activate a graph,
+    query external data, or execute actions. Default trust is content-only.
+parameters:
+- name: definition_bundle_json
+  type: any
+  required: true
+  form: form
+  label:
+    en_US: definition_bundle_json
+    zh_Hans: definition_bundle_json
+  human_description:
+    en_US: Fixed reviewed architecture.v2 definition; object or one JSON object string
+    zh_Hans: Fixed reviewed architecture.v2 definition; object or one JSON object
+      string
+  llm_description: Fixed reviewed architecture.v2 definition; object or one JSON object
+    string
+- name: node_ref
+  type: any
+  required: true
+  form: form
+  label:
+    en_US: node_ref
+    zh_Hans: node_ref
+  human_description:
+    en_US: Fixed workflow_id/phase_id/step_id/node_id object; never chosen by the
+      model
+    zh_Hans: Fixed workflow_id/phase_id/step_id/node_id object; never chosen by the
+      model
+  llm_description: Fixed workflow_id/phase_id/step_id/node_id object; never chosen
+    by the model
+- name: expected_definition_sha256
+  type: string
+  required: true
+  form: form
+  label:
+    en_US: expected_definition_sha256
+    zh_Hans: expected_definition_sha256
+  human_description:
+    en_US: Required reviewed RFC8785 definition digest. Hashes are not source authentication
+      or authorization.
+    zh_Hans: Required reviewed RFC8785 definition digest. Hashes are not source authentication
+      or authorization.
+  llm_description: Required reviewed RFC8785 definition digest. Hashes are not source
+    authentication or authorization.
+- name: inputs_json
+  type: any
+  required: true
+  form: llm
+  label:
+    en_US: inputs_json
+    zh_Hans: inputs_json
+  human_description:
+    en_US: Bound typed parameter_snapshot and runtime_snapshot for this node
+    zh_Hans: Bound typed parameter_snapshot and runtime_snapshot for this node
+  llm_description: Bound typed parameter_snapshot and runtime_snapshot for this node
+- name: execution_context_json
+  type: any
+  required: true
+  form: llm
+  label:
+    en_US: execution_context_json
+    zh_Hans: execution_context_json
+  human_description:
+    en_US: Host-bound run, activation, subject, authorization reference and explicit
+      as_of time
+    zh_Hans: Host-bound run, activation, subject, authorization reference and explicit
+      as_of time
+  llm_description: Host-bound run, activation, subject, authorization reference and
+    explicit as_of time
+output_schema:
+  type: object
+  properties:
+    results:
+      type: object
+    execution_status:
+      type: string
+    output_port:
+      type: string
+    outputs:
+      type: object
+    diagnostics:
+      type: array
+      items:
+        type: object
+    trace:
+      type: object
+    state:
+      type: string
+    data:
+      type: object
+    actions:
+      type: array
+      items:
+        type: object
+  required:
+  - results
+  - execution_status
+  - output_port
+  - outputs
+  - diagnostics
+  - trace
+  - state
+  - data
+  - actions
+extra:
+  python:
+    source: tools/evaluate_decision.py

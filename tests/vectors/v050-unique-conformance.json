@@ -1,0 +1,1107 @@
+{
+  "schema_version": "0.5.0",
+  "description": "Synthetic, independently hand-derived UNIQUE extension vectors. FIRST/COLLECT remain in frozen v030-conformance.json.",
+  "decision_cases": [
+    {
+      "id": "empty",
+      "table": {
+        "id": "empty",
+        "hit_policy": "UNIQUE",
+        "rules": []
+      },
+      "values": {},
+      "expected": {
+        "conditions": [],
+        "status": "no_match",
+        "decision_status": "no_match",
+        "selected_rule_ids": [],
+        "matched_rule_ids": [],
+        "condition_matched_rule_ids": [],
+        "unknown_rule_ids": [],
+        "blocking_unknown_rule_ids": []
+      }
+    },
+    {
+      "id": "all-false",
+      "table": {
+        "id": "all-false",
+        "hit_policy": "UNIQUE",
+        "rules": [
+          {
+            "id": "a",
+            "when": false
+          },
+          {
+            "id": "b",
+            "when": false
+          }
+        ]
+      },
+      "values": {},
+      "expected": {
+        "conditions": [
+          false,
+          false
+        ],
+        "status": "no_match",
+        "decision_status": "no_match",
+        "selected_rule_ids": [],
+        "matched_rule_ids": [],
+        "condition_matched_rule_ids": [],
+        "unknown_rule_ids": [],
+        "blocking_unknown_rule_ids": []
+      }
+    },
+    {
+      "id": "one-true",
+      "table": {
+        "id": "one-true",
+        "hit_policy": "UNIQUE",
+        "rules": [
+          {
+            "id": "a",
+            "when": false
+          },
+          {
+            "id": "b",
+            "when": true,
+            "output": {
+              "ref": "opaque",
+              "nested": [
+                null,
+                false,
+                "${not-code}"
+              ]
+            },
+            "载荷": {
+              "keep": true
+            }
+          }
+        ]
+      },
+      "values": {},
+      "expected": {
+        "conditions": [
+          false,
+          true
+        ],
+        "status": "matched",
+        "decision_status": "matched",
+        "selected_rule_ids": [
+          "b"
+        ],
+        "matched_rule_ids": [
+          "b"
+        ],
+        "condition_matched_rule_ids": [
+          "b"
+        ],
+        "unknown_rule_ids": [],
+        "blocking_unknown_rule_ids": []
+      }
+    },
+    {
+      "id": "conflicting-true",
+      "table": {
+        "id": "conflicting-true",
+        "hit_policy": "UNIQUE",
+        "rules": [
+          {
+            "id": "a",
+            "when": true,
+            "output": "a"
+          },
+          {
+            "id": "b",
+            "when": true,
+            "output": "b"
+          }
+        ]
+      },
+      "values": {},
+      "expected": {
+        "conditions": [
+          true,
+          true
+        ],
+        "status": "conflict",
+        "decision_status": "conflict",
+        "selected_rule_ids": [],
+        "matched_rule_ids": [],
+        "condition_matched_rule_ids": [
+          "a",
+          "b"
+        ],
+        "unknown_rule_ids": [],
+        "blocking_unknown_rule_ids": []
+      }
+    },
+    {
+      "id": "same-output-still-conflicts",
+      "table": {
+        "id": "same-output-still-conflicts",
+        "hit_policy": "UNIQUE",
+        "rules": [
+          {
+            "id": "a",
+            "when": true,
+            "output": "same"
+          },
+          {
+            "id": "b",
+            "when": true,
+            "output": "same"
+          }
+        ]
+      },
+      "values": {},
+      "expected": {
+        "conditions": [
+          true,
+          true
+        ],
+        "status": "conflict",
+        "decision_status": "conflict",
+        "selected_rule_ids": [],
+        "matched_rule_ids": [],
+        "condition_matched_rule_ids": [
+          "a",
+          "b"
+        ],
+        "unknown_rule_ids": [],
+        "blocking_unknown_rule_ids": []
+      }
+    },
+    {
+      "id": "three-true-retain-all",
+      "table": {
+        "id": "three-true-retain-all",
+        "hit_policy": "UNIQUE",
+        "rules": [
+          {
+            "id": "a",
+            "when": true
+          },
+          {
+            "id": "b",
+            "when": true
+          },
+          {
+            "id": "c",
+            "when": true
+          }
+        ]
+      },
+      "values": {},
+      "expected": {
+        "conditions": [
+          true,
+          true,
+          true
+        ],
+        "status": "conflict",
+        "decision_status": "conflict",
+        "selected_rule_ids": [],
+        "matched_rule_ids": [],
+        "condition_matched_rule_ids": [
+          "a",
+          "b",
+          "c"
+        ],
+        "unknown_rule_ids": [],
+        "blocking_unknown_rule_ids": []
+      }
+    },
+    {
+      "id": "unknown-before-true-compatible",
+      "table": {
+        "id": "unknown-before-true-compatible",
+        "hit_policy": "UNIQUE",
+        "rules": [
+          {
+            "id": "a",
+            "when": {
+              "eq": [
+                "a",
+                1
+              ]
+            }
+          },
+          {
+            "id": "b",
+            "when": true
+          }
+        ],
+        "unknown_policy": "compatible"
+      },
+      "values": {},
+      "expected": {
+        "conditions": [
+          null,
+          true
+        ],
+        "status": "waiting_input",
+        "decision_status": "waiting_input",
+        "selected_rule_ids": [],
+        "matched_rule_ids": [],
+        "condition_matched_rule_ids": [
+          "b"
+        ],
+        "unknown_rule_ids": [
+          "a"
+        ],
+        "blocking_unknown_rule_ids": [
+          "a"
+        ]
+      }
+    },
+    {
+      "id": "unknown-after-true-compatible",
+      "table": {
+        "id": "unknown-after-true-compatible",
+        "hit_policy": "UNIQUE",
+        "rules": [
+          {
+            "id": "a",
+            "when": true
+          },
+          {
+            "id": "b",
+            "when": {
+              "eq": [
+                "b",
+                1
+              ]
+            }
+          }
+        ],
+        "unknown_policy": "compatible"
+      },
+      "values": {},
+      "expected": {
+        "conditions": [
+          true,
+          null
+        ],
+        "status": "waiting_input",
+        "decision_status": "waiting_input",
+        "selected_rule_ids": [],
+        "matched_rule_ids": [],
+        "condition_matched_rule_ids": [
+          "a"
+        ],
+        "unknown_rule_ids": [
+          "b"
+        ],
+        "blocking_unknown_rule_ids": [
+          "b"
+        ]
+      }
+    },
+    {
+      "id": "all-unknown-compatible",
+      "table": {
+        "id": "all-unknown-compatible",
+        "hit_policy": "UNIQUE",
+        "rules": [
+          {
+            "id": "a",
+            "when": {
+              "eq": [
+                "a",
+                1
+              ]
+            }
+          },
+          {
+            "id": "b",
+            "when": {
+              "eq": [
+                "b",
+                1
+              ]
+            }
+          }
+        ],
+        "unknown_policy": "compatible"
+      },
+      "values": {},
+      "expected": {
+        "conditions": [
+          null,
+          null
+        ],
+        "status": "waiting_input",
+        "decision_status": "waiting_input",
+        "selected_rule_ids": [],
+        "matched_rule_ids": [],
+        "condition_matched_rule_ids": [],
+        "unknown_rule_ids": [
+          "a",
+          "b"
+        ],
+        "blocking_unknown_rule_ids": [
+          "a",
+          "b"
+        ]
+      }
+    },
+    {
+      "id": "conflict-over-unknown-compatible",
+      "table": {
+        "id": "conflict-over-unknown-compatible",
+        "hit_policy": "UNIQUE",
+        "rules": [
+          {
+            "id": "a",
+            "when": {
+              "eq": [
+                "a",
+                1
+              ]
+            }
+          },
+          {
+            "id": "b",
+            "when": true
+          },
+          {
+            "id": "c",
+            "when": {
+              "eq": [
+                "c",
+                1
+              ]
+            }
+          },
+          {
+            "id": "d",
+            "when": true
+          }
+        ],
+        "unknown_policy": "compatible"
+      },
+      "values": {},
+      "expected": {
+        "conditions": [
+          null,
+          true,
+          null,
+          true
+        ],
+        "status": "conflict",
+        "decision_status": "conflict",
+        "selected_rule_ids": [],
+        "matched_rule_ids": [],
+        "condition_matched_rule_ids": [
+          "b",
+          "d"
+        ],
+        "unknown_rule_ids": [
+          "a",
+          "c"
+        ],
+        "blocking_unknown_rule_ids": []
+      }
+    },
+    {
+      "id": "unknown-before-true-strict",
+      "table": {
+        "id": "unknown-before-true-strict",
+        "hit_policy": "UNIQUE",
+        "rules": [
+          {
+            "id": "a",
+            "when": {
+              "eq": [
+                "a",
+                1
+              ]
+            }
+          },
+          {
+            "id": "b",
+            "when": true
+          }
+        ],
+        "unknown_policy": "strict"
+      },
+      "values": {},
+      "expected": {
+        "conditions": [
+          null,
+          true
+        ],
+        "status": "waiting_input",
+        "decision_status": "waiting_input",
+        "selected_rule_ids": [],
+        "matched_rule_ids": [],
+        "condition_matched_rule_ids": [
+          "b"
+        ],
+        "unknown_rule_ids": [
+          "a"
+        ],
+        "blocking_unknown_rule_ids": [
+          "a"
+        ]
+      }
+    },
+    {
+      "id": "unknown-after-true-strict",
+      "table": {
+        "id": "unknown-after-true-strict",
+        "hit_policy": "UNIQUE",
+        "rules": [
+          {
+            "id": "a",
+            "when": true
+          },
+          {
+            "id": "b",
+            "when": {
+              "eq": [
+                "b",
+                1
+              ]
+            }
+          }
+        ],
+        "unknown_policy": "strict"
+      },
+      "values": {},
+      "expected": {
+        "conditions": [
+          true,
+          null
+        ],
+        "status": "waiting_input",
+        "decision_status": "waiting_input",
+        "selected_rule_ids": [],
+        "matched_rule_ids": [],
+        "condition_matched_rule_ids": [
+          "a"
+        ],
+        "unknown_rule_ids": [
+          "b"
+        ],
+        "blocking_unknown_rule_ids": [
+          "b"
+        ]
+      }
+    },
+    {
+      "id": "all-unknown-strict",
+      "table": {
+        "id": "all-unknown-strict",
+        "hit_policy": "UNIQUE",
+        "rules": [
+          {
+            "id": "a",
+            "when": {
+              "eq": [
+                "a",
+                1
+              ]
+            }
+          },
+          {
+            "id": "b",
+            "when": {
+              "eq": [
+                "b",
+                1
+              ]
+            }
+          }
+        ],
+        "unknown_policy": "strict"
+      },
+      "values": {},
+      "expected": {
+        "conditions": [
+          null,
+          null
+        ],
+        "status": "waiting_input",
+        "decision_status": "waiting_input",
+        "selected_rule_ids": [],
+        "matched_rule_ids": [],
+        "condition_matched_rule_ids": [],
+        "unknown_rule_ids": [
+          "a",
+          "b"
+        ],
+        "blocking_unknown_rule_ids": [
+          "a",
+          "b"
+        ]
+      }
+    },
+    {
+      "id": "conflict-over-unknown-strict",
+      "table": {
+        "id": "conflict-over-unknown-strict",
+        "hit_policy": "UNIQUE",
+        "rules": [
+          {
+            "id": "a",
+            "when": {
+              "eq": [
+                "a",
+                1
+              ]
+            }
+          },
+          {
+            "id": "b",
+            "when": true
+          },
+          {
+            "id": "c",
+            "when": {
+              "eq": [
+                "c",
+                1
+              ]
+            }
+          },
+          {
+            "id": "d",
+            "when": true
+          }
+        ],
+        "unknown_policy": "strict"
+      },
+      "values": {},
+      "expected": {
+        "conditions": [
+          null,
+          true,
+          null,
+          true
+        ],
+        "status": "conflict",
+        "decision_status": "conflict",
+        "selected_rule_ids": [],
+        "matched_rule_ids": [],
+        "condition_matched_rule_ids": [
+          "b",
+          "d"
+        ],
+        "unknown_rule_ids": [
+          "a",
+          "c"
+        ],
+        "blocking_unknown_rule_ids": []
+      }
+    },
+    {
+      "id": "default-no-provisional-winner",
+      "table": {
+        "id": "default-no-provisional-winner",
+        "hit_policy": "UNIQUE",
+        "rules": [
+          {
+            "id": "a",
+            "when": true
+          },
+          {
+            "id": "b",
+            "when": {
+              "eq": [
+                "b",
+                1
+              ]
+            }
+          }
+        ]
+      },
+      "values": {},
+      "expected": {
+        "conditions": [
+          true,
+          null
+        ],
+        "status": "waiting_input",
+        "decision_status": "waiting_input",
+        "selected_rule_ids": [],
+        "matched_rule_ids": [],
+        "condition_matched_rule_ids": [
+          "a"
+        ],
+        "unknown_rule_ids": [
+          "b"
+        ],
+        "blocking_unknown_rule_ids": [
+          "b"
+        ]
+      }
+    },
+    {
+      "id": "explicit-null",
+      "table": {
+        "id": "explicit-null",
+        "hit_policy": "UNIQUE",
+        "rules": [
+          {
+            "id": "a",
+            "when": true
+          },
+          {
+            "id": "b",
+            "when": {
+              "eq": [
+                "b",
+                1
+              ]
+            }
+          }
+        ]
+      },
+      "values": {
+        "b": null
+      },
+      "expected": {
+        "conditions": [
+          true,
+          null
+        ],
+        "status": "waiting_input",
+        "decision_status": "waiting_input",
+        "selected_rule_ids": [],
+        "matched_rule_ids": [],
+        "condition_matched_rule_ids": [
+          "a"
+        ],
+        "unknown_rule_ids": [
+          "b"
+        ],
+        "blocking_unknown_rule_ids": [
+          "b"
+        ]
+      }
+    },
+    {
+      "id": "false-and-unknown",
+      "table": {
+        "id": "false-and-unknown",
+        "hit_policy": "UNIQUE",
+        "rules": [
+          {
+            "id": "a",
+            "when": false
+          },
+          {
+            "id": "b",
+            "when": {
+              "eq": [
+                "b",
+                1
+              ]
+            }
+          }
+        ]
+      },
+      "values": {},
+      "expected": {
+        "conditions": [
+          false,
+          null
+        ],
+        "status": "waiting_input",
+        "decision_status": "waiting_input",
+        "selected_rule_ids": [],
+        "matched_rule_ids": [],
+        "condition_matched_rule_ids": [],
+        "unknown_rule_ids": [
+          "b"
+        ],
+        "blocking_unknown_rule_ids": [
+          "b"
+        ]
+      }
+    },
+    {
+      "id": "unknown-leaf-in-false-rule",
+      "table": {
+        "id": "unknown-leaf-in-false-rule",
+        "hit_policy": "UNIQUE",
+        "rules": [
+          {
+            "id": "a",
+            "when": true
+          },
+          {
+            "id": "b",
+            "when": {
+              "all": [
+                false,
+                {
+                  "eq": [
+                    "missing",
+                    1
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "values": {},
+      "expected": {
+        "conditions": [
+          true,
+          false
+        ],
+        "status": "matched",
+        "decision_status": "matched",
+        "selected_rule_ids": [
+          "a"
+        ],
+        "matched_rule_ids": [
+          "a"
+        ],
+        "condition_matched_rule_ids": [
+          "a"
+        ],
+        "unknown_rule_ids": [],
+        "blocking_unknown_rule_ids": []
+      }
+    },
+    {
+      "id": "unknown-leaf-in-true-rule",
+      "table": {
+        "id": "unknown-leaf-in-true-rule",
+        "hit_policy": "UNIQUE",
+        "rules": [
+          {
+            "id": "a",
+            "when": {
+              "any": [
+                true,
+                {
+                  "eq": [
+                    "missing",
+                    1
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "id": "b",
+            "when": false
+          }
+        ]
+      },
+      "values": {},
+      "expected": {
+        "conditions": [
+          true,
+          false
+        ],
+        "status": "matched",
+        "decision_status": "matched",
+        "selected_rule_ids": [
+          "a"
+        ],
+        "matched_rule_ids": [
+          "a"
+        ],
+        "condition_matched_rule_ids": [
+          "a"
+        ],
+        "unknown_rule_ids": [],
+        "blocking_unknown_rule_ids": []
+      }
+    },
+    {
+      "id": "invalid-amount-is-unknown",
+      "table": {
+        "id": "invalid-amount-is-unknown",
+        "hit_policy": "UNIQUE",
+        "rules": [
+          {
+            "id": "a",
+            "when": true
+          },
+          {
+            "id": "b",
+            "when": {
+              "eq": [
+                "discount",
+                1
+              ]
+            }
+          }
+        ]
+      },
+      "values": {
+        "discount": {
+          "operator": "discount_share",
+          "base_fen": 125,
+          "pay_percent": 50
+        }
+      },
+      "expected": {
+        "conditions": [
+          true,
+          null
+        ],
+        "status": "waiting_input",
+        "decision_status": "waiting_input",
+        "selected_rule_ids": [],
+        "matched_rule_ids": [],
+        "condition_matched_rule_ids": [
+          "a"
+        ],
+        "unknown_rule_ids": [
+          "b"
+        ],
+        "blocking_unknown_rule_ids": [
+          "b"
+        ]
+      }
+    },
+    {
+      "id": "missing-output-is-null",
+      "table": {
+        "id": "missing-output-is-null",
+        "hit_policy": "UNIQUE",
+        "rules": [
+          {
+            "id": "a",
+            "when": true,
+            "载荷": {
+              "ref": "keep"
+            }
+          }
+        ]
+      },
+      "values": {},
+      "expected": {
+        "conditions": [
+          true
+        ],
+        "status": "matched",
+        "decision_status": "matched",
+        "selected_rule_ids": [
+          "a"
+        ],
+        "matched_rule_ids": [
+          "a"
+        ],
+        "condition_matched_rule_ids": [
+          "a"
+        ],
+        "unknown_rule_ids": [],
+        "blocking_unknown_rule_ids": []
+      }
+    },
+    {
+      "id": "unknown-resolves-false",
+      "table": {
+        "id": "unknown-resolves-false",
+        "hit_policy": "UNIQUE",
+        "rules": [
+          {
+            "id": "a",
+            "when": true
+          },
+          {
+            "id": "b",
+            "when": {
+              "eq": [
+                "b",
+                1
+              ]
+            }
+          }
+        ]
+      },
+      "values": {
+        "b": 0
+      },
+      "expected": {
+        "conditions": [
+          true,
+          false
+        ],
+        "status": "matched",
+        "decision_status": "matched",
+        "selected_rule_ids": [
+          "a"
+        ],
+        "matched_rule_ids": [
+          "a"
+        ],
+        "condition_matched_rule_ids": [
+          "a"
+        ],
+        "unknown_rule_ids": [],
+        "blocking_unknown_rule_ids": []
+      }
+    },
+    {
+      "id": "unknown-resolves-true",
+      "table": {
+        "id": "unknown-resolves-true",
+        "hit_policy": "UNIQUE",
+        "rules": [
+          {
+            "id": "a",
+            "when": true
+          },
+          {
+            "id": "b",
+            "when": {
+              "eq": [
+                "b",
+                1
+              ]
+            }
+          }
+        ]
+      },
+      "values": {
+        "b": 1
+      },
+      "expected": {
+        "conditions": [
+          true,
+          true
+        ],
+        "status": "conflict",
+        "decision_status": "conflict",
+        "selected_rule_ids": [],
+        "matched_rule_ids": [],
+        "condition_matched_rule_ids": [
+          "a",
+          "b"
+        ],
+        "unknown_rule_ids": [],
+        "blocking_unknown_rule_ids": []
+      }
+    }
+  ],
+  "error_cases": [
+    {
+      "id": "invalid-condition-after-conflict",
+      "table": {
+        "id": "invalid-condition-after-conflict",
+        "hit_policy": "UNIQUE",
+        "rules": [
+          {
+            "id": "a",
+            "when": true
+          },
+          {
+            "id": "b",
+            "when": true
+          },
+          {
+            "id": "c",
+            "when": {
+              "bad": []
+            }
+          }
+        ]
+      },
+      "values": {},
+      "expected_error": {
+        "code": "UNSUPPORTED_OPERATOR",
+        "path": "$.rules[2].when"
+      }
+    },
+    {
+      "id": "runtime-error-after-conflict",
+      "table": {
+        "id": "runtime-error-after-conflict",
+        "hit_policy": "UNIQUE",
+        "rules": [
+          {
+            "id": "a",
+            "when": true
+          },
+          {
+            "id": "b",
+            "when": true
+          },
+          {
+            "id": "c",
+            "when": {
+              "gt": [
+                "x",
+                1
+              ]
+            }
+          }
+        ]
+      },
+      "values": {
+        "x": "invalid"
+      },
+      "expected_error": {
+        "code": "INVALID_VALUE",
+        "path": "$.rules[2].when.gt"
+      }
+    },
+    {
+      "id": "runtime-error-after-waiting",
+      "table": {
+        "id": "runtime-error-after-waiting",
+        "hit_policy": "UNIQUE",
+        "rules": [
+          {
+            "id": "a",
+            "when": {
+              "eq": [
+                "a",
+                1
+              ]
+            }
+          },
+          {
+            "id": "b",
+            "when": {
+              "gt": [
+                "x",
+                1
+              ]
+            }
+          }
+        ]
+      },
+      "values": {
+        "x": "invalid"
+      },
+      "expected_error": {
+        "code": "INVALID_VALUE",
+        "path": "$.rules[1].when.gt"
+      }
+    },
+    {
+      "id": "duplicate-ids",
+      "table": {
+        "id": "duplicate-ids",
+        "hit_policy": "UNIQUE",
+        "rules": [
+          {
+            "id": "a",
+            "when": true
+          },
+          {
+            "id": "a",
+            "when": false
+          }
+        ]
+      },
+      "values": {},
+      "expected_error": {
+        "code": "INVALID_TABLE",
+        "path": "$.rules[1].id"
+      }
+    }
+  ]
+}

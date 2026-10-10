@@ -1,121 +1,27 @@
-# JSON 决策矩阵 v0.4.1
+# Dify DMN 0.7.0 + Chrome 扩展 0.1.0
 
-为 Dify **1.11.1** 工作流 Tool 节点增加只读配置矩阵：条件字段为列、输出字段为列、规则为行，嵌套且/或逻辑保留。展示与 Python 执行器共用原始 `table_json`；执行语义和输出合约沿用 v0.3.0。
+推荐路线：**原版 Dify + Chrome 扩展，不用前端补丁**。
 
-- [v0.4.1 发布说明与附件](docs/RELEASE-0.4.1.md)
-- [安装：标准插件包 + 单独构建的 web 接入](docs/INSTALL-0.4.1.md)
-- [完整验证范围](docs/VALIDATION-0.4.1.md) · [真实 Docker 合成验收](docs/DOCKER-VALIDATION-0.4.1.md)
+DMN 插件负责决策工具执行；浏览器扩展负责工作流编辑页的只读决策表结构预览。预览不执行决策、不编辑或保存表，也不判断规则命中。
 
-## 安装 v0.4.1
+## 安装
 
-1. 先由管理员审查未签名包，完成公司批准的签名、信任与分发流程，保持签名校验开启
-2. 若测试部署允许安装经审查的 GitHub 附件，打开 **Plugins → Install from GitHub**，输入 `https://github.com/liangquanzhou/dify-dmn-plugin`，选择 **v0.4.1** 及 `liangquanzhou-dmn_decision-0.4.1-unsigned.difypkg`。策略拒绝未签名包时，应改用管理员批准的签名分发版本；不要选择源码 ZIP，也不要关闭签名校验
-3. 插件列表应显示“JSON 决策表”。在测试工作流添加“执行 JSON 决策表”Tool，设置静态 `table_json`，绑定上游 `values_json`；可选 `expected_sha256` 用于内容版本锁。无需引擎地址或提供方凭据
-4. 要在节点面板中看到矩阵，另从源码 ZIP 按[安装说明](docs/INSTALL-0.4.1.md)应用并构建 web 接入。必须精确匹配 Dify 提交 `2058186f22b4e4d4e155f380c130f4e8f21622fa`
+1. 按实例的签名与安装策略安装本 Release 的 DMN 0.7.0 `.difypkg`。附件是已验收的原始未签名包。
+2. 解压 `dmn-browser-preview-0.1.0.zip`，在 `chrome://extensions` 按允许的开发者模式流程加载包含 `manifest.json` 的目录。
+3. 在 Dify 工作流编辑页点击扩展启用，再选择受支持的 DMN 节点。刷新、切换页面或重启浏览器后需重新启用，每个标签页单独授权。
 
-`.difypkg` 只安装标准 Tool，不能单独注入 React。配套 web 接入是只读预览，不是可视化规则编辑器；JSON 仍通过 Dify 原生表单编辑。发布附件 `dmn-decision-matrix-0.4.1-offline.html` 可直接打开查看同一组件，不需要 Node，也不包含 Python 运行时或离线规则执行能力。
+详细步骤见 [中文安装说明](docs/INSTALL-0.7.0.zh-CN.md)。扩展源码、测试和说明位于 `browser-extension/`。
 
-## 已通过真实 Docker 工作流验收
+## 精确范围与验证
 
-2026-10-09 在云端隔离 Docker Dify 1.11.1 安装插件 0.4.1，应用配套 web 后显示矩阵，并从真实 UI 执行 **Start → DMN → End**：**3 个节点，2.136330 秒，0 异常**。选中 `priority`，`priority` 与 `standard` 的条件均为 true；预览展开、关闭与运行后，持久化 `table_json` 原文字节不变。
+只支持 `provider_id=liangquanzhou/dmn_decision/dmn`、`provider_type=builtin`、`type=tool`、`tool_name=evaluate`，读取页面内存的 `data.tool_configurations.table_json`。非法、空白或未解析变量会清空旧表，不推测结果。依赖 React 私有 `__reactProps$…` 属性，版本升级需重新验证。
 
-这次测试仅在获明确批准的隔离实例使用了签名校验例外。公司安装仍必须经过审查、签名和信任配置；此次没有部署公司环境，合成流程通过不代表全部 Dify 功能或生产业务已验收。
+官方未修改 Dify 1.11.1 ARM64 + Chrome for Testing 155.0.8059.39 已通过真实 MV3 30 项检查，以及 4 组共 8 次扩展开/关节点执行对照。模拟页另有 37 项检查。启用使用官方 `Extensions.triggerAction`，不是物理鼠标点击证明。公司定制环境与升级版本尚未验证。
 
-## 兼容性与执行合约
+旧前端补丁仅为可选路线，不是本安装流程的前置条件；其历史文档中的版本与限制仍适用。
 
-一个 Dify Tool 节点执行一张自定义 JSON 决策表，全部求值在插件内部完成，不需要外部引擎、访问令牌、Java 服务或 XML。插件技术身份仍为 `liangquanzhou/dmn_decision` / provider `dmn` / tool `evaluate`，不表示支持标准 DMN 或 FEEL。
+## 插件能力与边界
 
-v0.3.0 JSON 执行合约保持不变；从 v0.1.x XML 升级属于破坏性变更，须先备份并新建测试节点。旧 dmn-js/XML/KIE 补丁不兼容，按[迁移说明](docs/MIGRATION-0.2.0.md)撤回，不能让生产旧 XML 工作流直接使用新版。
+0.7.0 提供显式 JSON 表、typed decision、受控只读查询、advisory plan 和结构查看器；不是 DMN XML/FEEL 引擎。默认查询连接未配置并明确阻断；真实公司 API、控制器执行、持久等待及恢复不在本次验收范围内。详情见 [0.7.0 契约](docs/JSON-SUITE-0.7.0.md)。
 
-## 沿用的 v0.3.0 执行合约
-
-旧表无需重写：未设置 `unknown_policy` 时继续 v0.2.0 的选择行为。需要阻止“缺输入却落入兜底”时，在**表 JSON 内**加 `"unknown_policy":"strict"`：FIRST 遇到第一条 true 之前的未知会等待，第一条 true 之后的未知不阻塞；COLLECT 遇到任意未知会等待。
-
-新工作流用 `decision_status` 区分 `matched`、`no_match`、`waiting_input`。未知可能来自缺值、无效金额或不完整约束，不代表一定只缺一个变量。原 `matched`/`matched_rule_ids` 继续表示最终选中；新 `all_matches`/`condition_matched_rule_ids` 表示全部条件为 true 的规则，不能把它们当作等待时可执行的结果。
-
-新增 `model_sha256` 使用完整表的 RFC8785 规范化内容计算 SHA-256；空白或键顺序变化不改该指纹，规则数组顺序变化会改。`expected_sha256` 可选且独立于表，用于执行前检查版本。`table_version` 仍为原始文本 SHA-256。编译时可以运行 `python scripts/compile_table.py examples/table.json --output /tmp/table-node-config.json`，自动生成带版本锁的静态配置。
-
-17 个独立输出变量可绑定；末尾标准 JSON 消息保留旧 9 字段，新增决策信息请绑定 `decision_result` 或相应独立变量。默认 compatible 没有 true 但有未知时，旧 `status=no_match` 保留兼容，新的 `decision_status=waiting_input`；strict 等待时两个状态都为 waiting_input。新代码推荐只依赖 decision_status。
-
-详见 [0.3.0 迁移](docs/MIGRATION-0.3.0.md) 和 [本地执行器对齐清单](docs/LOCAL_ALIGNMENT.md)。本地 `phases/steps/rules/when/output` 结构不需重构，但本地执行器与编译器需要按同一规范增加策略、结果与指纹，并通过随附合成向量；本交付没有修改或验证公司本地实现。
-
-## 五分钟合成测试
-
-将 `examples/table.json` 全部复制到 `table_json`。它是单张表，不是含多表的方案。
-
-将以下内容以字符串传给 `values_json`：
-
-```json
-{"customer.level":"gold","item_count":4}
-```
-
-预期：
-- `status` 为 `matched`
-- `matched_rule_ids` 为 `["priority"]`
-- `outputs` 为 `[{"route":"priority"}]`
-- `evaluations` 包含两条规则，条件都是 `true`。FIRST 只选择第一条，但不会跳过第二条求值
-
-把 `hit_policy` 改为 `COLLECT`，则两条规则均入选，保持原数组顺序。`output` 只作为数据返回，既不执行其中的表达式，也不自动合并。
-
-上游 Code 节点可以把对象序列化成字符串：
-
-```python
-import json
-
-def main(level: str, item_count: int) -> dict:
-    return {"values_json": json.dumps({"customer.level": level, "item_count": item_count}, ensure_ascii=False)}
-```
-
-在 Tool 的 `values_json` 中绑定该输出。`"customer.level"` 是完整变量名，不会读取 `{"customer":{"level":...}}`。没有值就缺省该键或使用 `null`，不要用空字符串、0 或 false 代替未知。
-
-## 输入和输出
-
-完整定义见 [条件协议](docs/CONTRACT.md)。
-
-- 表结构：`{id, hit_policy: "FIRST" | "COLLECT", rules: [{id, when, output?, 载荷?, ...}]}`
-- 必须是单张表，表 id 和规则 id 非空，规则 id 唯一
-- 条件 `true` / `false` / `null` 表示真 / 假 / 未知，只有 `true` 才命中
-- `FIRST`、`COLLECT` 都对全部规则求值；无命中是正常结果，错误会使节点失败
-- `result` 与 `result_json` 表示原始决策结果 `{matched,evaluations}`
-- `matched` 原样保留选中规则，含 `output`、`载荷` 和其他数据
-- `outputs` 按选中顺序取 `output`；该字段缺失时放 `null`，可从 `matched` 分辨缺失和显式 null
-- `matched_rule_ids`、`status`、`table_id`、`table_version` 可直接绑定
-- `evaluations` 为每条规则提供条件结果和变量依赖追溯。这些字段不是已验证外部证据
-
-Dify 1.11.1 对任意类型混合 `outputs` 数组可能显示 `Array[Unknown]`，这是其类型展示。需要稳定字符串接口时使用 `result_json` 并在后续 Code 节点显式解析。
-
-## 签名和依赖
-
-运行环境 Python 3.12，官方 SDK 固定为 `dify-plugin==0.10.2`。完整依赖锁定在 `plugin/requirements.txt`，安装时 Dify plugin-daemon 需要访问公司批准的 Python 包源。正常决策执行不请求外部网络。
-
-若管理员已持有批准的签名密钥，可用官方 CLI：
-
-```bash
-/path/to/dify signature sign ./liangquanzhou-dmn_decision-0.4.1-unsigned.difypkg \
-  -p /secure/path/company.private.pem
-/path/to/dify signature verify ./liangquanzhou-dmn_decision-0.4.1-unsigned.signed.difypkg \
-  -p /approved/path/company.public.pem
-```
-
-管理员须按公司的 Dify/plugin-daemon 信任策略配置受信公钥。Dify 1.11.1 默认 Compose 不会自动转发第三方签名相关变量；需要启用企业第三方签名时，由管理员审查并显式配置 daemon 环境和公钥挂载。不要关闭 `FORCE_VERIFYING_SIGNATURE`。本交付没有生成密钥、建立信任、配置公司服务器或安装软件到公司环境。
-
-## 开发验证和打包
-
-在已获批准的 Python 3.12 开发环境：
-
-```bash
-python -m pip install -r plugin/requirements.txt -r requirements-dev.txt
-PYTHON=python bash scripts/verify.sh
-DIFY_CLI=/path/to/dify bash scripts/package_plugin.sh
-python scripts/package_source.py
-```
-
-实际检查和未验证范围见 [v0.4.1 验证记录](docs/VALIDATION-0.4.1.md) 和 [真实 Docker 合成验收](docs/DOCKER-VALIDATION-0.4.1.md)。云端合成工作流成功不代表公司环境安装成功。生产采用前仍需依赖审查、签名、公司 Dify 安装和真实业务工作流验收。
-
-## 官方参考
-
-- [Dify 1.11.1](https://github.com/langgenius/dify/releases/tag/1.11.1)
-- [Dify Tool 插件开发](https://docs.dify.ai/en/develop-plugin/dev-guides-and-walkthroughs/tool-plugin)
-- [通过 GitHub Release 分发](https://docs.dify.ai/en/develop-plugin/publishing/marketplace-listing/release-to-individual-github-repo)
-- [第三方签名验证](https://docs.dify.ai/en/develop-plugin/publishing/standards/third-party-signature-verification)
-- [官方 Dify plugin SDK](https://github.com/langgenius/dify-plugin-sdks)
+候选阶段文档按历史记录保留；本次发布不重新构建插件或扩展运行文件。[发布说明](docs/RELEASE-0.7.0.md) 记录来源、资产与最终验收。

@@ -1,12 +1,24 @@
 'use client'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { literal, outputValue, parseTable } from './model'
-import type { Matrix } from './model'
+import type { Matrix, Table } from './model'
 import styles from './decision-table.module.css'
 type Props = {
   value: unknown;
   nodeId?: string;
   readOnly?: boolean;
+}
+const policySummary: Record<Table['hit_policy'], string> = {
+  FIRST: '按顺序选择首个成立规则',
+  COLLECT: '按顺序收集所有成立规则',
+  UNIQUE: '仅允许唯一成立规则；冲突时不选中',
+}
+function UniquePolicyHelp() {
+  return <div className={styles.policyHelp} aria-label="UNIQUE 策略说明">
+    <p><strong>UNIQUE 唯一命中</strong>：恰有 1 条规则成立且没有未知规则时，才选中该规则（matched）；0 条成立且无未知时为 no_match。</p>
+    <p>至少 2 条规则成立时为 conflict，不选中任何规则，即使输出相同也视为冲突。</p>
+    <p>至多 1 条成立且存在未知规则时为 waiting_input，不选中任何规则；compatible / strict 均需等待唯一性确认。</p>
+  </div>
 }
 function Grid({ matrix }: {
   matrix: Matrix;
@@ -60,10 +72,11 @@ function ReadyPreview({ matrix: m, nodeId, readOnly }: {
   const header = <><div><span className={styles.eyebrow}>DECISION TABLE</span><h3>{m.table.id}</h3></div><div className={styles.badges}><span className={styles.policy}>{m.table.hit_policy}</span><span>{m.rows.length} 条规则</span><span>{readOnly ? '只读面板' : '配置预览'}</span></div></>
   return <section className={styles.root} key={nodeId} data-node-id={nodeId}>
     <div className={styles.header}>{header}</div>
-    <div className={styles.toolbar}><p>{m.table.hit_policy === 'FIRST' ? '按顺序选择首个成立规则' : '按顺序收集所有成立规则'} · 未知值策略：{m.table.unknown_policy || 'compatible'}{m.table.unknown_policy === 'strict' && '（存在阻塞未知值时会等待）'}</p><button type="button" onClick={() => setExpanded(true)}>展开大表 ↗</button></div>
+    <div className={styles.toolbar}><p>{policySummary[m.table.hit_policy]} · 未知值策略：{m.table.unknown_policy || 'compatible'}{m.table.unknown_policy === 'strict' && m.table.hit_policy !== 'UNIQUE' && '（存在阻塞未知值时会等待）'}</p><button type="button" onClick={() => setExpanded(true)}>展开大表 ↗</button></div>
+    {m.table.hit_policy === 'UNIQUE' && <UniquePolicyHelp/>}
     <Grid matrix={m}/>
     <div className={styles.legend}><span><b>A / B / C</b> 为本行条件编号</span><span><b>且 / 或</b> 及括号保留原始逻辑</span><span><b>—</b> 此列无独立条件</span></div>
     <p className={styles.note}>展示与执行共用原始 table_json；本视图不修改配置，不计算命中结果。横向滚动可查看全部字段。</p>
-    <dialog className={styles.dialog} ref={dialog} onClose={() => setExpanded(false)}>{expanded && <><div className={styles.dialogBar}><div className={styles.header}>{header}</div><button type="button" onClick={() => dialog.current?.close()} autoFocus>关闭大表 ×</button></div><Grid matrix={m}/><p className={styles.note}>条件列中的编号，按“组合逻辑”中的且 / 或关系计算；空白字段不等于默认值。</p></>}</dialog>
+    <dialog className={styles.dialog} ref={dialog} onClose={() => setExpanded(false)}>{expanded && <><div className={styles.dialogBar}><div className={styles.header}>{header}</div><button type="button" onClick={() => dialog.current?.close()} autoFocus>关闭大表 ×</button></div>{m.table.hit_policy === 'UNIQUE' && <UniquePolicyHelp/>}<Grid matrix={m}/><p className={styles.note}>条件列中的编号，按“组合逻辑”中的且 / 或关系计算；空白字段不等于默认值。本视图不计算命中结果。</p></>}</dialog>
   </section>
 }

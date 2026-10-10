@@ -1,0 +1,63 @@
+identity:
+  name: evaluate_json_table
+  author: liangquanzhou
+  label:
+    en_US: Evaluate JSON Table Profile
+    zh_Hans: Evaluate JSON Table Profile
+description:
+  human:
+    en_US: Explicit json-table-v1 path/null/deep-equality profile. FIRST/COLLECT/UNIQUE.
+      Read status before outputs; no XML, FEEL, network or code.
+    zh_Hans: Explicit json-table-v1 path/null/deep-equality profile. FIRST/COLLECT/UNIQUE.
+      Read status before outputs; no XML, FEEL, network or code.
+  llm: Explicit json-table-v1 path/null/deep-equality profile. FIRST/COLLECT/UNIQUE.
+    Read status before outputs; no XML, FEEL, network or code.
+parameters:
+- name: table_json
+  type: any
+  required: true
+  form: form
+  label:
+    en_US: table_json
+    zh_Hans: table_json
+  human_description:
+    en_US: Fixed reviewed json-table-v1 table; native object or one JSON object string
+    zh_Hans: Fixed reviewed json-table-v1 table; native object or one JSON object
+      string
+  llm_description: Fixed reviewed json-table-v1 table; native object or one JSON object
+    string
+- name: inputs_json
+  type: any
+  required: true
+  form: llm
+  label:
+    en_US: inputs_json
+    zh_Hans: inputs_json
+  human_description:
+    en_US: Exact known inputs; native object or one JSON object string. Do not invent
+      missing facts.
+    zh_Hans: Exact known inputs; native object or one JSON object string. Do not invent
+      missing facts.
+  llm_description: Exact known inputs; native object or one JSON object string. Do
+    not invent missing facts.
+- name: expected_sha256
+  type: string
+  required: false
+  form: form
+  label:
+    en_US: expected_sha256
+    zh_Hans: expected_sha256
+  human_description:
+    en_US: Optional RFC8785 table digest. Content identity is not authorization.
+    zh_Hans: Optional RFC8785 table digest. Content identity is not authorization.
+  llm_description: Optional RFC8785 table digest. Content identity is not authorization.
+output_schema:
+  type: object
+  properties:
+    results:
+      type: object
+  required:
+  - results
+extra:
+  python:
+    source: tools/evaluate_json_table.py

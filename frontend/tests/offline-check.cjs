@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const assert = require('assert');
 const root = path.resolve(__dirname, '../..');
-const html = fs.readFileSync(path.join(root, 'dist/dmn-decision-matrix-0.4.1-offline.html'));
+const html = fs.readFileSync(path.join(root, 'dist/dmn-decision-matrix-0.7.0-candidate-offline.html'));
 const server = http.createServer((_req, res) => {
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.end(html);
@@ -36,6 +36,16 @@ const server = http.createServer((_req, res) => {
     await page.keyboard.press('Escape');
     await page.locator('dialog table').waitFor({ state: 'detached' });
     check('packaged dialog closes and unmounts', await page.locator('table').count() === 1);
+    await page.getByRole('button', { name: '04 UNIQUE · 唯一配送' }).click();
+    check('UNIQUE renders all original rules in packaged HTML', await page.locator('tbody tr').count() === 3);
+    check('UNIQUE conflict and unknown guidance visible offline', await page.getByLabel('UNIQUE 策略说明').isVisible() && (await page.getByLabel('UNIQUE 策略说明').textContent()).includes('waiting_input'));
+    await page.getByRole('button', { name: '展开大表 ↗', exact: true }).click();
+    check('UNIQUE guidance remains available in expanded offline view', await page.locator('dialog').getByLabel('UNIQUE 策略说明').isVisible());
+    await page.keyboard.press('Escape');
+    await page.locator('dialog table').waitFor({ state: 'detached' });
+    await page.getByRole('button', { name: '05 其他 Tool 节点' }).click();
+    check('unrelated tool has no UNIQUE matrix', await page.locator('table').count() === 0);
+    check('UNIQUE preview makes no execution or asset requests', requests.length === 1);
     check('no JavaScript errors', errors.length === 0);
     fs.writeFileSync(path.join(root, 'evidence/offline-check.json'), JSON.stringify({ checks, errors, assetRequests: requests.length - 1, executionNotIncluded: true }, null, 2));
     console.log(JSON.stringify({ passed: checks.length, checks }));

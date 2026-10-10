@@ -2,5 +2,5 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 mkdir -p dist
-"${DIFY_CLI:-dify}" plugin package ./plugin -o ./dist/liangquanzhou-dmn_decision-0.4.1-unsigned.difypkg
+"${DIFY_CLI:-dify}" plugin package ./plugin -o ./dist/liangquanzhou-dmn_decision-0.7.0-candidate-unsigned.difypkg
 printf '%s\n' 'UNSIGNED. Administrator review/signing may be required. Keep signature verification enabled.'

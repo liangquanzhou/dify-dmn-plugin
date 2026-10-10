@@ -1,0 +1,8 @@
+{
+  "id": "synthetic-unique",
+  "hit_policy": "UNIQUE",
+  "rules": [
+    {"id": "small", "when": {"lt": ["size", 10]}, "output": {"route": "small"}},
+    {"id": "large", "when": {"gte": ["size", 10]}, "output": {"route": "large"}}
+  ]
+}

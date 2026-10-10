@@ -1,44 +1,34 @@
-# JSON Decision Matrix for Dify · v0.4.1
+# Dify DMN 0.7.0 + Chrome preview 0.1.0
 
-A read-only field-column decision matrix for the Dify **1.11.1** Tool configuration panel: conditions and outputs are columns; rules are rows. The standard Python Tool and its v0.3.0 execution contract are unchanged.
+Use **stock Dify + the Chrome extension; no frontend patch is required**.
 
-[中文指南](README.zh-CN.md) · [Release notes and assets](docs/RELEASE-0.4.1.md) · [Installation](docs/INSTALL-0.4.1.md) · [Validation](docs/VALIDATION-0.4.1.md)
+The Dify plugin executes JSON decision tools. The separate MV3 extension displays a read-only decision-table structure in the workflow editor. It does not edit/save tables, execute workflows, or calculate rule matches.
 
-## Install v0.4.1
+[中文指南](README.zh-CN.md) · [Installation](docs/INSTALL-0.7.0.zh-CN.md) · [Release notes](docs/RELEASE-0.7.0.md) · [Plugin contracts](docs/JSON-SUITE-0.7.0.md)
 
-1. Have your administrator review the unsigned package and complete your organization's approved signing and distribution process. Keep signature verification enabled
-2. For a deployment that permits the reviewed GitHub asset, open **Plugins → Install from GitHub**, enter `https://github.com/liangquanzhou/dify-dmn-plugin`, select **v0.4.1**, and choose `liangquanzhou-dmn_decision-0.4.1-unsigned.difypkg`. If policy rejects the unsigned asset, use the administrator-approved signed distribution instead; a source ZIP is not an installable plugin
-3. Add **Evaluate JSON Table** to a test workflow. Set `table_json` and bind upstream `values_json`; no engine address or provider credentials are required
-4. To show the matrix inside the Tool panel, separately apply and build the matching web integration from the source ZIP, following [the installation guide](docs/INSTALL-0.4.1.md). It targets exactly Dify commit `2058186f22b4e4d4e155f380c130f4e8f21622fa`
+## Install
 
-The `.difypkg` installs a standard Tool. It cannot inject React into Dify. The separately built web integration adds a read-only configuration preview, not a visual rule editor. The `dmn-decision-matrix-0.4.1-offline.html` release asset previews the same component without Node; it contains no Python runtime and does not execute rules. Old v0.1.x XML/KIE frontend patches are incompatible.
+1. Install the original 0.7.0 `.difypkg` from the v0.7.0 Release using your deployment's approved signature and installation policy. The accepted package remains unsigned; its original candidate filename is retained to identify the exact tested bytes.
+2. Extract `dmn-browser-preview-0.1.0.zip`. In Chrome's extensions page, load the directory containing `manifest.json` through your approved developer-mode distribution process.
+3. Open a Dify workflow editor and explicitly activate the extension, then select a supported DMN node. Reactivate after refresh, application navigation, or browser restart. Each tab requires its own activation.
 
-## Verified in real Docker Dify
+The extension only accepts `type=tool`, `provider_type=builtin`, `provider_id=liangquanzhou/dmn_decision/dmn`, and `tool_name=evaluate`. It reads the current page's `data.tool_configurations.table_json`; empty, invalid, dynamic, or unsupported data clears the old preview. Other tools in the suite are not supported by this extension.
 
-On 2026-10-09, an isolated cloud Docker Dify 1.11.1 instance installed plugin 0.4.1, displayed the patched matrix, and completed **Start → DMN → End** from the actual UI: **3 nodes, 2.136330 seconds, 0 exceptions**. `priority` was selected; both `priority` and `standard` conditions were true. Persisted `table_json` bytes were unchanged. See the [public synthetic-test summary](docs/DOCKER-VALIDATION-0.4.1.md).
+## Evidence and compatibility
 
-The unsigned package was tested under an explicitly approved signature-check exception in that isolated instance only. Company signing and trust requirements still apply. This verifies the synthetic flow, not a company deployment or general production acceptance.
+Official unmodified Dify 1.11.1 ARM64 + Chrome for Testing 155.0.8059.39 passed 30 real-MV3 checks and four plugin regression groups (eight real node executions with extension off/on). Another 37 checks used a simulated host and are separate evidence. Activation used official `Extensions.triggerAction` through the real worker, activeTab, and chrome.scripting; physical mouse input was not independently verified.
 
-## Execution contract retained from v0.3.0
+The reader depends on private React `__reactProps$…` properties. Company-customized environments and upgraded versions remain unverified. See the [public acceptance summary](browser-extension/docs/PUBLIC-ACCEPTANCE.md). Synthetic acceptance is not a production authorization or an exhaustive security audit.
 
-One Tool node evaluates one custom JSON table entirely inside the plugin. No external engine, credentials or XML. Configure `table_json` as a static JSON string and bind upstream `values_json`. `FIRST` and `COLLECT` evaluate every rule; missing/unknown is distinct from false. Rule outputs are data, never code.
+## Plugin scope
 
-The package retains the existing plugin/provider identity. v0.1.x XML workflows require migration; v0.2.0 tables retain their default selection behavior. The `dmn_decision` technical name does not imply support for standard DMN or FEEL. See the [condition contract](docs/CONTRACT.md), [v0.3.0 contract migration](docs/MIGRATION-0.3.0.md), and [v0.4.1 validation scope](docs/VALIDATION-0.4.1.md).
-
-## Additive v0.3.0 contract
-
-Existing tables default to `unknown_policy: "compatible"` behavior. Set `unknown_policy: "strict"` **inside the table** to wait when unknown rules can alter FIRST selection or the COLLECT set. Bind `decision_status` (`matched`, `no_match`, `waiting_input`) for new workflows. Legacy matched fields still mean selected rules; `all_matches` and `condition_matched_rule_ids` report every true condition.
-
-`model_sha256` hashes the full table using RFC 8785. Optional `expected_sha256` is a separate Tool parameter that rejects a content-version mismatch before evaluation. `table_version` retains the original-text hash. `scripts/compile_table.py` generates the static table/pin pair automatically.
-
-All 17 outputs are separate bindable variables. The final standard JSON message retains the old nine-field aggregation to avoid duplicating new diagnostics; bind `decision_result` for the versioned new metadata. See [migration](docs/MIGRATION-0.3.0.md), [local runtime alignment](docs/LOCAL_ALIGNMENT.md), and [synthetic cross-runtime vectors](tests/vectors/v030-conformance.json).
+The 0.7.0 suite includes explicit JSON-table profiles, typed decisions, bounded registered read-only queries, advisory plans, and a read-only structure viewer. It is not a DMN XML/FEEL engine. Existing `evaluate` FIRST/COLLECT/UNIQUE contracts and all 17 outputs are preserved. Default query connections are unconfigured and fail closed; company API integration, durable waiting/recovery, and runtime parallel orchestration are not established by this release. See [suite contracts and limits](docs/JSON-SUITE-0.7.0.md).
 
 ## Source layout
 
-- `plugin/`: pure Python evaluator, bounded JSON boundary, standard Dify provider/tool
-- `examples/`: synthetic single-table fixtures
-- `tests/`: evaluator, boundary and actual SDK/legacy Dify protocol checks
-- `docs/`: condition contract, migration, installation/verification evidence
-- `scripts/`: verification and reproducible packaging
+- `plugin/`: frozen 0.7.0 Python tools and viewer assets; all 40 packaged files match the accepted `.difypkg`.
+- `browser-extension/`: separate 0.1.0 extension source, tests, prebuilt extension, and public documentation.
+- `frontend/`: optional historical frontend integration and structure-viewer source. The frontend patch is not required for the recommended extension route.
+- `tests/`, `examples/`, `scripts/`, `docs/`: synthetic fixtures, tests, packaging, contracts, and validation records.
 
-The standard Tool needs no external engine service, Java/Maven or custom frontend build. The optional in-panel matrix requires the separate Dify web build described above. The unsigned package requires the company's normal review/signature policy. Never disable signature verification to install it.
+Candidate-era documents and embedded package documentation are retained as historical records. Release packaging changes public documentation and source packaging only; plugin and extension runtime bytes are unchanged. The v0.4.1 patch route remains optional and has its own exact-baseline restrictions.

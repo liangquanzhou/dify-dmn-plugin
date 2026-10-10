@@ -1,0 +1,20 @@
+{
+  "capability_id": "example.read_only",
+  "definition_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "query_plan_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "operation_registry_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "inputs": {
+    "subject_id": "SYNTHETIC-EXAMPLE"
+  },
+  "context": {
+    "subject_id": "SYNTHETIC-EXAMPLE",
+    "run_id": "example-run",
+    "activation_id": "example-activation",
+    "node_ref": "LOCATE/example",
+    "selected_intent": {
+      "kind": "QUERY",
+      "capability_id": "example.read_only",
+      "inputs_sha256": "bc84db811503042e91c56c2062b390de95ec8f091fa7e66ec73dee76aa063e16"
+    }
+  }
+}

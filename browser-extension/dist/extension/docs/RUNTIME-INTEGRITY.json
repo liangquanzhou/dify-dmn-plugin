@@ -1,0 +1,108 @@
+{
+  "candidate_zip_sha256": "646a6f53adbd4f8a0caeeb02839b6301c4435e39ed56631cb1093046f20d281b",
+  "documentation_only": true,
+  "runtime_files": [
+    {
+      "file": "manifest.json",
+      "sha256": "6ae3ad9984119f0ee381e2c336903ab838dd599a53cf19512433a5bd5eb933a1",
+      "candidate_final_source_dist_byte_equal": true
+    },
+    {
+      "file": "background.js",
+      "sha256": "f8715adb0a79f84d1438ac1a6be4250415e97903cf92c3f0562de7e7fa645b51",
+      "candidate_final_source_dist_byte_equal": true
+    },
+    {
+      "file": "content.js",
+      "sha256": "7ab18a2c4caf34c65d247804ef0c9e0015690117004067da256fc72b5e271d43",
+      "candidate_final_source_dist_byte_equal": true
+    },
+    {
+      "file": "reader.js",
+      "sha256": "9bf2a3395e0a7a1b1cec216edd8d3052e86ad1972a726177a49a31187fde58b4",
+      "candidate_final_source_dist_byte_equal": true
+    },
+    {
+      "file": "dock.css",
+      "sha256": "d0c3458c2273a452137a62b36cfa5cdc3654686ef2d0a18d6a7759b696b4901b",
+      "candidate_final_source_dist_byte_equal": true
+    }
+  ],
+  "source_files": [
+    {
+      "file": "package-lock.json",
+      "sha256": "8c1fe87d3dc9e07b38d04d70c145a8d48a573e333c8cbb9514b1ad4bd0a37266",
+      "byte_equal": true
+    },
+    {
+      "file": "package.json",
+      "sha256": "3e341e7968a16d01543b3ec8b6f89b630a657f1ba16f07f3cd7e54acbe9d77b8",
+      "byte_equal": true
+    },
+    {
+      "file": "manifest.json",
+      "sha256": "6ae3ad9984119f0ee381e2c336903ab838dd599a53cf19512433a5bd5eb933a1",
+      "byte_equal": true
+    },
+    {
+      "file": "tsconfig.json",
+      "sha256": "ce505656b02988248a1829da96454f72bfd04dbd7557ebfc73552a8a311d50cc",
+      "byte_equal": true
+    },
+    {
+      "file": "tests/api.ts",
+      "sha256": "a852d4a1c48846377afafec1f956b6aab3df706a4c9e0153e82a44965153faac",
+      "byte_equal": true
+    },
+    {
+      "file": "tests/extension.test.mjs",
+      "sha256": "9b0a1e43ce51dcd6f34690e83663cc135863ed602f4cc6d31fa17f749b681e03",
+      "byte_equal": true
+    },
+    {
+      "file": "scripts/package.py",
+      "sha256": "882211b69c5b0cbb4c8addd9df6e74925f22ac30ba3a5b96a294fbd21fbbb37c",
+      "byte_equal": true
+    },
+    {
+      "file": "scripts/build.mjs",
+      "sha256": "3227f3a1edbfd6393f00cb9c5f4fdd72014344e5c246a02801feb0a991f2d5b0",
+      "byte_equal": true
+    },
+    {
+      "file": "src/dock.css",
+      "sha256": "d0c3458c2273a452137a62b36cfa5cdc3654686ef2d0a18d6a7759b696b4901b",
+      "byte_equal": true
+    },
+    {
+      "file": "src/binding.ts",
+      "sha256": "ab6353892b48e38057bc7c39cbf404335c7d1d367df29544347adcc336281cb1",
+      "byte_equal": true
+    },
+    {
+      "file": "src/background.js",
+      "sha256": "f8715adb0a79f84d1438ac1a6be4250415e97903cf92c3f0562de7e7fa645b51",
+      "byte_equal": true
+    },
+    {
+      "file": "src/content.ts",
+      "sha256": "f5e38de09bc34c0a9998d6a66a2cbec1686ebe749875e91595ba47eef21b2940",
+      "byte_equal": true
+    },
+    {
+      "file": "src/view.ts",
+      "sha256": "0af560a3df5eb91aba2f3cb61f1c196d8994d33bb2fd7ec3bda017926c10fdf8",
+      "byte_equal": true
+    },
+    {
+      "file": "src/reader.ts",
+      "sha256": "8b82ad2f9e81280ab35f95d6c7997a736afb3be38dbeb691a2472b921f02307c",
+      "byte_equal": true
+    },
+    {
+      "file": "src/model.ts",
+      "sha256": "c7d7e72c8b233797073a7de495ff631eae71e1682472304828b9190657fe2a42",
+      "byte_equal": true
+    }
+  ]
+}

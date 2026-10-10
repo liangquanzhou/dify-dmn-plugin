@@ -1,6 +1,8 @@
-# 单表 JSON 协议 v0.3.0
+# 单表 JSON 条件协议与选择扩展
 
 v0.3.0 保留以下 v0.2.0 条件求值协议，新增选择层详见 [本地执行器对齐规范](LOCAL_ALIGNMENT.md)。表内可选 `unknown_policy` 缺省为 compatible，strict 会在影响选择的 UNKNOWN 存在时等待；因此下文 FIRST/COLLECT 选取 true 规则的基础规则须结合该策略阅读。新增模型 hash 与输出字段见 [迁移说明](MIGRATION-0.3.0.md)。
+
+0.5.0 候选增加 `UNIQUE`，精确定义见 [UNIQUE 扩展](UNIQUE-0.5.0.md)。FIRST/COLLECT 仍使用下述原有语义；条件算子未变。
 
 本协议是自定义决策表条件协议，不是 DMN、FEEL 或 JavaScript。求值器没有 `eval`、脚本、通用 `not`、模板展开、外部引用、任意函数或 IO。示例全部为合成数据。
 
@@ -13,11 +15,12 @@ v0.3.0 保留以下 v0.2.0 条件求值协议，新增选择层详见 [本地执
 ```
 
 - `id` 与每条规则的 `id` 必须为非空字符串；规则 id 在表内唯一
-- `hit_policy` 只允许 `FIRST` 和 `COLLECT`。`RULE_ORDER` 明确报错，不隐式映射
+- `hit_policy` 只允许 `FIRST`、`COLLECT` 和 `UNIQUE`。`RULE_ORDER` 明确报错，不隐式映射
 - `rules` 必须是数组，允许空数组；每条规则必须有 `when`
 - 每个条件为布尔值，或**恰好一个**已知算子的对象；多算子、未知算子、错误元数和错误引用结构一律报错
 - 所有规则先完整校验、再按数组顺序求值；`all` / `any` 的所有子条件也都求值，不以真假短路跳过后续错误
-- FIRST 选第一条 condition 为 true 的规则，COLLECT 选全部 true 规则，顺序不变
+- FIRST 选第一条 condition 为 true 的规则，COLLECT 选全部 true 规则，顺序不变；二者结合 unknown_policy 使用
+- UNIQUE 只有恰好一个 true 且没有 UNKNOWN 才选择；至少两个 true 返回 conflict，否则存在 UNKNOWN 则 waiting_input。冲突/等待均不选择规则；该唯一性保证不受 unknown_policy 放宽
 - 无命中返回空 matched，保留全部 evaluations；错误不转成无命中
 - `output`、`载荷` 及其他规则字段只是数据，完整保留，不执行、不替换引用、不自动合并
 

@@ -1,0 +1,15 @@
+# SDK 0.10.2 EndpointProviderConfiguration. GET rules also match HEAD through
+# Werkzeug. No endpoint settings or user-supplied definition API is exposed.
+settings: []
+endpoints:
+  - path: /
+    method: GET
+    extra:
+      python:
+        source: endpoints/structure_viewer.py
+  - path: /<path:asset_path>
+    method: GET
+    hidden: true
+    extra:
+      python:
+        source: endpoints/structure_viewer.py

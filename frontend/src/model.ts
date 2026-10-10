@@ -8,7 +8,7 @@ export type Rule = {
 }
 export type Table = {
   id: string;
-  hit_policy: 'FIRST' | 'COLLECT';
+  hit_policy: 'FIRST' | 'COLLECT' | 'UNIQUE';
   unknown_policy?: 'compatible' | 'strict';
   rules: Rule[];
 }
@@ -182,8 +182,8 @@ export function parseTable(value: unknown): {
     walk(t)
     if (!isRecord(t) || typeof t.id !== 'string' || !t.id.trim() || !Array.isArray(t.rules))
       fail('需要 id、hit_policy 和 rules 数组')
-    if (t.hit_policy !== 'FIRST' && t.hit_policy !== 'COLLECT')
-      fail('仅支持 FIRST / COLLECT 命中策略')
+    if (t.hit_policy !== 'FIRST' && t.hit_policy !== 'COLLECT' && t.hit_policy !== 'UNIQUE')
+      fail('仅支持 FIRST / COLLECT / UNIQUE 命中策略')
     if (own(t, 'unknown_policy') && t.unknown_policy !== 'strict' && t.unknown_policy !== 'compatible')
       fail('未知值策略必须为 strict / compatible')
     if (t.rules.length > 1000)

@@ -1,0 +1,44 @@
+identity:
+  name: execute_json_plan
+  author: liangquanzhou
+  label:
+    en_US: Advisory JSON Plan
+    zh_Hans: 建议型 JSON 计划
+description:
+  human:
+    en_US: Bounded LOCATE or P1–P5 local synthetic plan; does not execute business actions
+    zh_Hans: 有界 LOCATE 或 P1–P5 本地合成计划，不执行业务动作
+  llm: Execute a reviewed fixed json-plan-v1 request using synthetic queries and pure decisions. Always ADVISORY_ONLY. Never create business rules or treat fixture data as real evidence.
+parameters:
+  - name: request_json
+    type: any
+    required: true
+    form: form
+    label:
+      en_US: Reviewed plan request JSON
+      zh_Hans: 已审核计划请求 JSON
+    human_description:
+      en_US: Object string with plan, pinned models, and inputs; bindings use literal or from paths
+      zh_Hans: 包含 plan、锁定模型和 inputs 的对象字符串；绑定采用 literal 或 from 路径
+  - name: expected_sha256
+    type: string
+    required: false
+    form: form
+    label:
+      en_US: Expected complete request SHA-256
+      zh_Hans: 完整请求预期 SHA-256
+    human_description:
+      en_US: Optional RFC8785 content lock, not authorization
+      zh_Hans: 可选 RFC8785 内容锁，不代表执行授权
+output_schema:
+  type: object
+  properties:
+    results:
+      type: object
+    status:
+      type: string
+    outputs:
+      type: object
+extra:
+  python:
+    source: tools/execute_json_plan.py

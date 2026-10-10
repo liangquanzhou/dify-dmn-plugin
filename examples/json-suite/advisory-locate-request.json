@@ -1,0 +1,91 @@
+{
+  "plan": {
+    "format": "json-plan-v1",
+    "id": "synthetic-locate",
+    "version": "0.3.0",
+    "flow": "locate_problem",
+    "phases": [
+      {
+        "id": "LOCATE",
+        "steps": [
+          {
+            "id": "ticket",
+            "kind": "query",
+            "depends_on": [],
+            "capability_id": "demo.ticket_lookup",
+            "input_contract": "demo.ticket_lookup.input.v1",
+            "output_contract": "demo.ticket_lookup.output.v1",
+            "parameters": {
+              "ticket_id": {
+                "from": [
+                  "inputs",
+                  "ticket_id"
+                ]
+              }
+            }
+          },
+          {
+            "id": "advice",
+            "kind": "decision",
+            "depends_on": [
+              "ticket"
+            ],
+            "model_id": "advice",
+            "hit_policy": "FIRST",
+            "inputs": {
+              "order_id": {
+                "from": [
+                  "steps",
+                  "ticket",
+                  "outputs",
+                  "order_id"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "outputs": {
+      "advice": {
+        "from": [
+          "steps",
+          "advice",
+          "result"
+        ]
+      }
+    }
+  },
+  "models": {
+    "advice": {
+      "table": {
+        "format": "json-table-v1",
+        "id": "synthetic-locate-advice",
+        "version": "1",
+        "hit_policy": "FIRST",
+        "rules": [
+          {
+            "id": "known-order",
+            "when": [
+              {
+                "path": [
+                  "order_id"
+                ],
+                "op": "eq",
+                "value": "O-100"
+              }
+            ],
+            "output": {
+              "route": "ADVICE",
+              "message": "SYNTHETIC fixture: review the example order"
+            }
+          }
+        ]
+      },
+      "sha256": "31035f20f2ff860b89bb4017f0b8d2b18787ba21a80e83dc3514232d08962c7a"
+    }
+  },
+  "inputs": {
+    "ticket_id": "T-100"
+  }
+}

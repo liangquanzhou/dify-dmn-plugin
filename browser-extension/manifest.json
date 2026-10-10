@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "DMN Matrix Preview for Dify 1.11.1",
+  "version": "0.1.0",
+  "description": "Read-only preview of the selected DMN evaluate node's current table_json. Activate on this tab only.",
+  "minimum_chrome_version": "102",
+  "permissions": ["activeTab", "scripting"],
+  "background": { "service_worker": "background.js" },
+  "action": { "default_title": "Enable DMN matrix on this tab" },
+  "commands": { "_execute_action": { "suggested_key": { "default": "Alt+Shift+D", "mac": "Command+Shift+Y" } } },
+  "content_security_policy": { "extension_pages": "script-src 'self'; object-src 'none'" }
+}
